@@ -37,6 +37,9 @@ from .power import PowerSimulationRequest, PowerSimulationResult, simulate_power
 from .ranking import RankRequest, RankingResponse, rank_scenarios
 from .terrain import LolaDem, TerrainError, horizon_profile
 from .transitions import effective_step_minutes
+from .sources import Sources, SourceError
+from .planner import router as planner_router
+from fastapi.responses import JSONResponse
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BACKEND_DIR / ".env")
@@ -51,13 +54,14 @@ async def lifespan(app: FastAPI):
     app.state.dem = LolaDem(configured_dem) if configured_dem.exists() else None
 
     # Persistent ephemeris cache
-    default_cache = BACKEND_DIR / "data" / "horizons_cache.sqlite"
+    default_cache = BACKEND_DIR / "data" / "horizons_runtime.sqlite"
     cache_path = os.getenv("LUNARPATH_CACHE_DB", str(default_cache))
     cache_enabled = os.getenv("LUNARPATH_CACHE_ENABLED", "true").lower() in ("true", "1", "yes")
     app.state.cache = EphemerisCache(cache_path) if cache_enabled else None
 
-    async with httpx.AsyncClient(timeout=30, limits=httpx.Limits(max_connections=10)) as client:
+    async with httpx.AsyncClient(timeout=60, follow_redirects=True, limits=httpx.Limits(max_connections=10)) as client:
         app.state.horizons = HorizonsClient(client, cache=app.state.cache)
+        app.state.sources = Sources(client)
         yield
     if app.state.dem is not None:
         app.state.dem.close()
@@ -231,8 +235,15 @@ async def evaluate(scenario: Scenario, horizons: HorizonsClient, dem: LolaDem | 
         earth = await horizons.positions(399, site, scenario.start_utc, scenario.end_utc, effective_step)
     except HorizonsError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    if [row[0] for row in sun] != [row[0] for row in earth] or sun[0][0] != scenario.start_utc:
+    if not sun or not earth or [row[0] for row in sun] != [row[0] for row in earth] or sun[0][0] != scenario.start_utc:
         raise HTTPException(status_code=502, detail="Horizons returned misaligned sample times")
+    expected = scenario.start_utc
+    for instant, _, _ in sun:
+        if instant != expected:
+            raise HTTPException(status_code=502, detail="Horizons returned an incomplete sample grid")
+        expected += timedelta(minutes=effective_step)
+    if sun[-1][0] + timedelta(minutes=effective_step) < scenario.end_utc:
+        raise HTTPException(status_code=502, detail="Horizons returned incomplete time coverage")
 
     samples = [
         Sample(
@@ -493,3 +504,10 @@ def clear_cache(request: Request) -> dict[str, int]:
     if cache is None:
         return {"cleared_entries": 0}
     return {"cleared_entries": cache.clear()}
+
+
+app.include_router(planner_router)
+
+@app.exception_handler(SourceError)
+async def nasa_error(request: Request, exc: SourceError):
+    return JSONResponse(status_code=502, content={"detail": str(exc)})

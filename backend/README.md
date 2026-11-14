@@ -1,5 +1,7 @@
 # LunarPath AI backend
 
+> La integración actual añade Moon Trek, PGDA, malla 3D y búsqueda de fechas sobre este motor. Consulta [INTEGRACION_EXPLORADOR_3D.md](../docs/INTEGRACION_EXPLORADOR_3D.md) para contratos, arranque y verificación actualizados. El caché de ejecución predeterminado es `data/horizons_runtime.sqlite`.
+
 API inicial para comparar iluminación solar y visibilidad directa de la Tierra desde puntos de la Luna. Consulta **JPL Horizons** en tiempo real y devuelve series temporales, ventanas y métricas. Puede calcular un horizonte topográfico con el DEM LOLA instalado. Sin `use_dem_horizon` ni `horizon_profile`, usa el plano geométrico de 0°. Una curva suministrada por el cliente se interpola circularmente, pero la API no certifica su procedencia ni su datum.
 
 ## Python y arranque

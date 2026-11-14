@@ -1,6 +1,7 @@
 import csv
 import io
 import re
+import math
 from datetime import datetime, timezone
 
 import httpx
@@ -27,6 +28,8 @@ def parse_ephemeris(result: str) -> list[tuple[datetime, float, float]]:
             azimuth, elevation = float(row[3]), float(row[4])
         except (IndexError, ValueError) as exc:
             raise HorizonsError("Horizons returned an unexpected table format") from exc
+        if not math.isfinite(azimuth) or not math.isfinite(elevation):
+            raise HorizonsError("Invalid angular values")
         rows.append((instant, azimuth, elevation))
     if not rows:
         raise HorizonsError("Horizons returned an empty ephemeris table")

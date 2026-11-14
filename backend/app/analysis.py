@@ -140,7 +140,7 @@ def _windows(segments: list[TimelineSegment], visible_field: str) -> tuple[list[
     longest_hidden = 0.0
     hidden_run = 0.0
     for segment in segments:
-        if getattr(segment, visible_field):
+        if ((segment.sun_visible and segment.earth_visible) if visible_field == "both" else getattr(segment, visible_field)):
             visible_total += segment.duration_hours
             if windows and windows[-1].end_utc == segment.start_utc:
                 windows[-1].end_utc = segment.end_utc
@@ -162,15 +162,18 @@ def analyze(scenario: Scenario, timeline: Timeline) -> Metrics:
     earth_windows, earth_hours, blackout = _windows(timeline.segments, "earth_visible")
     concurrent_hours = sum(segment.duration_hours for segment in timeline.segments
                            if segment.sun_visible and segment.earth_visible)
+    concurrent_windows, _, _ = _windows(timeline.segments, "both")
+    longest_concurrent = max((w.duration_hours for w in concurrent_windows), default=0)
     constraints = scenario.constraints
     sun_fraction = sun_hours / duration_hours
     earth_fraction = earth_hours / duration_hours
     met = sun_fraction >= constraints.min_sunlit_fraction and earth_fraction >= constraints.min_earth_visible_fraction
+    met &= longest_concurrent >= constraints.min_concurrent_hours
     if constraints.max_darkness_hours is not None:
         met &= darkness <= constraints.max_darkness_hours
     if constraints.max_earth_blackout_hours is not None:
         met &= blackout <= constraints.max_earth_blackout_hours
-    return Metrics(sunlit_fraction=sun_fraction, earth_visible_fraction=earth_fraction,
+    return Metrics(concurrent_windows=concurrent_windows, longest_concurrent_hours=longest_concurrent, sunlit_fraction=sun_fraction, earth_visible_fraction=earth_fraction,
                    concurrent_fraction=concurrent_hours / duration_hours,
                    longest_darkness_hours=darkness, longest_earth_blackout_hours=blackout,
                    sunlit_windows=sun_windows, earth_visible_windows=earth_windows, constraints_met=met)

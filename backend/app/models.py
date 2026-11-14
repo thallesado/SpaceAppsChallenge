@@ -17,6 +17,7 @@ class HorizonPoint(BaseModel):
 
 
 class Constraints(BaseModel):
+    min_concurrent_hours: float = Field(default=0, ge=0, le=336)
     min_sunlit_fraction: float = Field(default=0, ge=0, le=1)
     min_earth_visible_fraction: float = Field(default=0, ge=0, le=1)
     max_darkness_hours: float | None = Field(default=None, ge=0)
@@ -122,6 +123,8 @@ class Timeline(BaseModel):
 
 
 class Metrics(BaseModel):
+    concurrent_windows: list[Window] = Field(default_factory=list)
+    longest_concurrent_hours: float = 0
     sunlit_fraction: float
     earth_visible_fraction: float
     concurrent_fraction: float

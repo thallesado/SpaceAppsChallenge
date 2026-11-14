@@ -108,3 +108,16 @@ def horizon_profile(dem: LolaDem, site: Site, *, observer_height_m: float = 2.0,
             skyline = max(skyline, angle)
         profile.append(HorizonPoint(azimuth_deg=azimuth, elevation_deg=skyline))
     return profile, (site_height + observer_height_m) / 1000
+
+
+# Shared skyline reuse across dates: same site and terrain produce the same horizon.
+from functools import lru_cache
+_original_horizon = horizon_profile
+
+@lru_cache(maxsize=64)
+def _cached_horizon(dem, lat, lon, height, distance, step):
+    return _original_horizon(dem, Site(latitude_deg=lat, longitude_deg=lon), observer_height_m=height, max_distance_km=distance, azimuth_step_deg=step)
+
+def horizon_profile(dem, site, *, observer_height_m=2.0, max_distance_km=250, azimuth_step_deg=1):
+    profile, height = _cached_horizon(dem, site.latitude_deg, site.longitude_deg, observer_height_m, max_distance_km, azimuth_step_deg)
+    return [point.model_copy() for point in profile], height

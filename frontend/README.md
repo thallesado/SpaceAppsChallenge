@@ -1,5 +1,7 @@
 # LunarPath AI — Frontend
 
+> La aplicación principal ahora es el explorador lunar 3D conectado a `/api/v1`: usa Moon Trek, Horizons y LOLA. La interfaz anterior descrita más abajo se conserva en `src/LegacyApp.tsx`. Instrucciones actuales, límites y verificación: [integración 3D](../docs/INTEGRACION_EXPLORADOR_3D.md).
+
 Interfaz React + TypeScript + Vite para explorar sitios del polo sur lunar, recorrer una línea temporal de visibilidad Sol/Tierra, comparar dos escenarios y evaluar restricciones básicas de misión.
 
 ## Ejecutar

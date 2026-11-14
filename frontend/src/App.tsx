@@ -1,125 +1,124 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Compass, Download, Earth, Gauge, Layers3, MapPin, Menu, Moon, Plus, Radio, Search, Settings2, ShieldCheck, Sun, X } from 'lucide-react'
-import { analyze } from './api'
-import { SITES, chartPath, formatHour, makeDemoScenario, metrics, verdict, type Scenario, type Site } from './data'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowRight, Crosshair, Earth, Globe2, Layers3, LoaderCircle, MapPin, Moon, Pause, Play, Radio, RotateCcw, Sun, X, Download, ExternalLink, AlertCircle } from 'lucide-react'
+import MoonScene from './MoonScene'
+import { request, utcLabel } from './plannerApi'
+import type { CatalogSite, Mesh, Option, Point, Result, SearchResult } from './plannerApi'
+import { ResultsPanel, HorizonPanel, GuidePanel } from './features/insights'
+import './explorer.css'
 
-const initialDate = '2026-11-15'
-const craters = [
-  [11, 13, 16], [46, 9, 11], [74, 14, 18], [94, 7, 12], [24, 40, 20], [80, 42, 16],
-  [52, 52, 27], [9, 75, 14], [29, 84, 20], [73, 79, 21], [95, 81, 19], [5, 33, 8],
-  [38, 19, 8], [90, 60, 9], [63, 28, 13], [56, 94, 16], [18, 60, 7], [83, 97, 9],
-]
-
-function LunarMap({ selected, onSelect }: { selected: string; onSelect: (site: Site) => void }) {
-  return <div className="moon-map" aria-label="Mapa esquemático del polo sur lunar">
-    <div className="moon-texture">
-      {craters.map(([x, y, size], i) => <i key={i} className="crater" style={{ left: `${x}%`, top: `${y}%`, width: `${size}%`, aspectRatio: '1' }} />)}
-      <div className="map-rings" /><div className="map-cross map-cross-x" /><div className="map-cross map-cross-y" />
-      <span className="pole-label">90° S</span><span className="map-coordinate">LUNAR SOUTH POLE • POLAR VIEW</span>
-      {SITES.map((site, i) => <button key={site.id} className={`map-point ${selected === site.id ? 'active' : ''}`} style={{ left: `${site.x}%`, top: `${site.y}%` }} onClick={() => onSelect(site)} aria-label={`Seleccionar ${site.name}`} title={site.name}><span className="point-dot"/><span className="point-index">0{i + 1}</span></button>)}
-      <span className="map-compass">N <span>↑</span></span>
-    </div>
-    <div className="map-overlay"><span className="live-dot"/> MAPA ESQUEMÁTICO <span className="map-scale">SIN ESCALA</span></div>
-  </div>
-}
-
-function Horizon({ scenario, hour }: { scenario: Scenario; hour: number }) {
-  const sample = scenario.samples[Math.min(hour, scenario.samples.length - 1)]
-  const sunY = 110 - sample.sunElevation * 6
-  const earthY = 110 - sample.earthElevation * 6
-  return <div className="horizon-wrap">
-    <svg className="horizon-svg" viewBox="0 0 700 210" role="img" aria-label="Vista ilustrativa de las elevaciones del Sol y la Tierra respecto al horizonte local">
-      <defs><linearGradient id="horizonBg" x2="0" y2="1"><stop stopColor="#112741"/><stop offset=".65" stopColor="#18293b"/><stop offset="1" stopColor="#19212b"/></linearGradient><linearGradient id="terrain" x2="0" y2="1"><stop stopColor="#8a9196"/><stop offset=".24" stopColor="#5e6971"/><stop offset="1" stopColor="#202b38"/></linearGradient><radialGradient id="sunGlow"><stop stopColor="#f7c977" stopOpacity=".55"/><stop offset="1" stopColor="#f7c977" stopOpacity="0"/></radialGradient></defs>
-      <rect width="700" height="210" fill="url(#horizonBg)"/>
-      {[45, 90, 135].map(y => <line key={y} x1="0" x2="700" y1={y} y2={y} stroke="#94a8b4" strokeOpacity=".14" strokeDasharray="4 6"/>)}
-      <line x1="0" x2="700" y1="110" y2="110" stroke="#e8f0f5" strokeOpacity=".35" strokeDasharray="5 6"/>
-      <circle cx="480" cy={sunY} r="58" fill="url(#sunGlow)"/><circle cx="480" cy={sunY} r="13" fill="#f7cc79"/><circle cx="480" cy={sunY} r="18" fill="none" stroke="#f7cc79" strokeOpacity=".55"/>
-      <circle cx="222" cy={earthY} r="10" fill="#75bbd3"/><path d={`M216 ${earthY - 7} Q223 ${earthY - 1} 230 ${earthY - 5}`} stroke="#c5e5ea" fill="none" strokeWidth="2"/><circle cx="222" cy={earthY} r="16" fill="none" stroke="#75bbd3" strokeOpacity=".35"/>
-      <path d="M0 140 L40 133 L80 142 L126 125 L167 130 L206 108 L249 125 L285 119 L325 133 L364 111 L398 119 L429 100 L462 112 L505 130 L548 116 L586 131 L628 105 L665 122 L700 117 L700 210 L0 210Z" fill="url(#terrain)"/>
-      <path d="M0 140 L40 133 L80 142 L126 125 L167 130 L206 108 L249 125 L285 119 L325 133 L364 111 L398 119 L429 100 L462 112 L505 130 L548 116 L586 131 L628 105 L665 122 L700 117" fill="none" stroke="#c0c8cb" strokeOpacity=".7" strokeWidth="1.5"/>
-      <text x="25" y="101" fill="#bec9d3" fontSize="11">0° HORIZONTE GEOMÉTRICO</text><text x="189" y={Math.max(18, earthY - 22)} fill="#acd8e7" fontSize="11">TIERRA</text><text x="458" y={Math.max(18, sunY - 27)} fill="#ffe0a5" fontSize="11">SOL</text>
-      <text x="20" y="192" fill="#e5edf1" fontSize="10">O</text><text x="344" y="192" fill="#e5edf1" fontSize="10">N</text><text x="669" y="192" fill="#e5edf1" fontSize="10">E</text>
-    </svg>
-    <div className="horizon-legend"><span><i className="dot amber"/> Sol {sample.sunElevation.toFixed(1)}°</span><span><i className="dot blue"/> Tierra {sample.earthElevation.toFixed(1)}°</span><span><i className="dot grey"/> Relieve ilustrativo</span></div>
-  </div>
-}
-
-function Timeline({ scenario, hour, onHourChange }: { scenario: Scenario; hour: number; onHourChange: (hour: number) => void }) {
-  const count = scenario.hours
-  const width = 600
-  const sun = scenario.samples.map(s => s.sunVisible ? 1 : 0)
-  const earth = scenario.samples.map(s => s.earthVisible ? 1 : 0)
-  return <div className="timeline-body">
-    <div className="timeline-row"><span className="timeline-name"><Sun size={16}/> Sol</span><div className="segments">{(scenario.source === 'api' ? sun : sun.slice(0, -1)).map((v, i) => <span key={i} style={{ background: v ? '#e8b96e' : '#263241' }} />)}</div><strong>{metrics(scenario).sunPercent}%</strong></div>
-    <div className="timeline-row"><span className="timeline-name"><Earth size={16}/> Tierra</span><div className="segments">{(scenario.source === 'api' ? earth : earth.slice(0, -1)).map((v, i) => <span key={i} style={{ background: v ? '#74b9d1' : '#263241' }} />)}</div><strong>{metrics(scenario).earthPercent}%</strong></div>
-    <div className="timeline-chart"><svg viewBox={`0 0 ${width} 64`} preserveAspectRatio="none" aria-label="Elevación del Sol y de la Tierra a lo largo del periodo"><line x1="0" y1="43" x2={width} y2="43" stroke="#627082" strokeDasharray="4 5"/><path d={chartPath(scenario.samples.map(s => s.sunElevation), width, 60, -5, 12)} fill="none" stroke="#e7b76d" strokeWidth="2"/><path d={chartPath(scenario.samples.map(s => s.earthElevation), width, 60, -5, 12)} fill="none" stroke="#79bdd3" strokeWidth="2"/><line x1={hour / count * width} x2={hour / count * width} y1="0" y2="64" stroke="#eaf0f4" strokeWidth="1"/></svg></div>
-    <input className="time-slider" aria-label="Hora de simulación" type="range" min="0" max={count} value={hour} onChange={e => onHourChange(Number(e.target.value))}/>
-    <div className="timeline-labels"><span>{formatHour(scenario.start, 0)}</span><span>{formatHour(scenario.start, Math.round(count / 2))}</span><span>{formatHour(scenario.start, count)}</span></div>
-  </div>
-}
-
-function MetricCard({ icon, label, value, suffix, color, detail }: { icon: React.ReactNode; label: string; value: number; suffix: string; color: string; detail: string }) {
-  return <div className="metric-card"><div className="metric-top"><span className={`metric-icon ${color}`}>{icon}</span><ArrowUpRight size={15}/></div><div className="metric-value">{value}<small>{suffix}</small></div><div className="metric-label">{label}</div><div className="metric-detail">{detail}</div></div>
-}
-
-function downloadCsv(scenario: Scenario) {
-  const rows = ['timestamp_utc,sun_elevation_deg,earth_elevation_deg,horizon_sun_deg,horizon_earth_deg,sun_visible,earth_visible', ...scenario.samples.map(s => `${new Date(Date.parse(scenario.start + 'T00:00:00Z') + s.hour * 3600000).toISOString()},${s.sunElevation.toFixed(2)},${s.earthElevation.toFixed(2)},${s.horizonSun.toFixed(2)},${s.horizonEarth.toFixed(2)},${s.sunVisible},${s.earthVisible}`)]
-  const url = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' }))
-  const link = document.createElement('a'); link.href = url; link.download = `lunarpath-${scenario.site.id}-${scenario.start}${scenario.source === 'demo' ? '-demo' : ''}.csv`; link.click(); URL.revokeObjectURL(url)
-}
+const today = new Date().toISOString().slice(0, 10)
+const pct = (n: number) => `${Math.round(n * 100)}%`
+const coords = (p: Point) => `${Math.abs(p.latitude_deg).toFixed(3)}° ${p.latitude_deg < 0 ? 'S' : 'N'} · ${Math.abs(p.longitude_deg).toFixed(3)}° ${p.longitude_deg < 0 ? 'O' : 'E'}`
 
 export default function App() {
-  const [site, setSite] = useState(SITES[0])
-  const [date, setDate] = useState(initialDate)
-  const [scenario, setScenario] = useState<Scenario>(() => makeDemoScenario(SITES[0], initialDate))
-  const [hour, setHour] = useState(48)
-  const [mode, setMode] = useState<'explorer' | 'analyst'>('explorer')
-  const [tab, setTab] = useState<'overview' | 'compare'>('overview')
-  const [compareId, setCompareId] = useState(SITES[1].id)
-  const [search, setSearch] = useState('')
-  const [minSun, setMinSun] = useState(45)
-  const [minEarth, setMinEarth] = useState(60)
-  const [maxBlackout, setMaxBlackout] = useState(24)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [apiError, setApiError] = useState<string | null>(null)
-  useEffect(() => { const controller = new AbortController(); setLoading(true); setApiError(null); analyze(site, date, controller.signal).then(result => { setScenario(result); setHour(Math.min(48, result.hours)); setLoading(false) }).catch(error => { if (controller.signal.aborted) return; setScenario(makeDemoScenario(site, date)); setApiError(`No se pudo consultar el backend: ${String(error)}. Se muestran datos ilustrativos.`); setLoading(false) }); return () => controller.abort() }, [site, date])
-  useEffect(() => { if (compareId === site.id) setCompareId(SITES.find(s => s.id !== site.id)!.id) }, [compareId, site.id])
-  const m = useMemo(() => metrics(scenario), [scenario])
-  const status = verdict(m, minSun, minEarth, maxBlackout)
-  const [compared, setCompared] = useState<Scenario>(() => makeDemoScenario(SITES[1], initialDate))
-  useEffect(() => { const controller = new AbortController(); const comparisonSite = SITES.find(s => s.id === compareId) || SITES[1]; analyze(comparisonSite, date, controller.signal).then(setCompared).catch(error => { if (controller.signal.aborted) return; setCompared(makeDemoScenario(comparisonSite, date)); setApiError(`No se pudo comparar con datos del backend: ${String(error)}. Se muestran datos ilustrativos.`) }); return () => controller.abort() }, [compareId, date])
-  const compareMetrics = metrics(compared)
-  const filteredSites = SITES.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
-  const currentSample = scenario.samples[Math.min(hour, scenario.samples.length - 1)]
-  return <div className="app-shell">
-    <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-      <div className="brand"><div className="brand-symbol"><Moon size={22}/><span/></div><div><strong>LUNARPATH<span> AI</span></strong><small>MISSION PLANNING PLATFORM</small></div><button className="mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú"><X size={20}/></button></div>
-      <div className="sidebar-section-title">WORKSPACE</div>
-      <button className={`nav-item ${tab === 'overview' ? 'selected' : ''}`} onClick={() => { setTab('overview'); setSidebarOpen(false) }}><Compass size={18}/> Explorador lunar <ChevronRight size={15}/></button>
-      <button className={`nav-item ${tab === 'compare' ? 'selected' : ''}`} onClick={() => { setTab('compare'); setSidebarOpen(false) }}><Layers3 size={18}/> Comparar sitios <ChevronRight size={15}/></button>
-      <div className="sidebar-section-title sites-title">SITIOS CANDIDATOS <span>04</span></div>
-      <div className="site-search"><Search size={15}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar región..." aria-label="Buscar sitios"/></div>
-      <div className="site-list">{filteredSites.map(item => <button key={item.id} className={`site-item ${item.id === site.id ? 'active' : ''}`} onClick={() => { setSite(item); setTab('overview'); setSidebarOpen(false) }}><span className="site-number">0{SITES.indexOf(item) + 1}</span><span><strong>{item.name}</strong><small>{item.region}</small></span>{item.id === site.id && <span className="active-indicator"/>}</button>)}{filteredSites.length === 0 && <p className="empty-search">Sin resultados</p>}</div>
-      <div className="sidebar-bottom"><div className="mission-card"><span className="mini-orbit"><span/></span><small>PROYECTO</small><strong>South Pole<br/>Explorer</strong><span className="mission-card-foot">NASA SPACE APPS 2026 <ArrowUpRight size={14}/></span></div><div className="sidebar-note"><CircleHelp size={15}/> Coordenadas y datos demo ilustrativos</div></div>
-    </aside>
-    <div className="main-shell">
-      <header className="topbar"><button className="mobile-menu" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú"><Menu size={21}/></button><div className="breadcrumbs">MISSION CONTROL <ChevronRight size={13}/> <strong>{tab === 'overview' ? 'Lunar Explorer' : 'Site Comparator'}</strong></div><div className="top-actions"><span className={`source-pill ${scenario.source === 'api' ? 'api' : ''}`}><span className="live-dot"/>{scenario.source === 'api' ? 'DATOS API' : 'MODO DEMO'}</span><span className="top-divider"/><span className="avatar">LP</span></div></header>
-      <main className="content">
-        <div className="page-heading"><div><div className="eyebrow"><span/> LUNAR SOUTH POLE / MISSION ANALYSIS</div><h1>{tab === 'overview' ? 'Explorador lunar' : 'Comparar sitios'}<span className="heading-star">✦</span></h1><p>{tab === 'overview' ? 'Explora condiciones de iluminación y visibilidad terrestre para planificar una misión.' : 'Evalúa dos ubicaciones bajo las mismas condiciones y restricciones.'}</p></div><div className="heading-actions"><button className="outline-button" onClick={() => downloadCsv(scenario)}><Download size={16}/> Exportar CSV</button><button className="primary-button" onClick={() => setTab(tab === 'overview' ? 'compare' : 'overview')}>{tab === 'overview' ? <Plus size={17}/> : <Compass size={17}/>} {tab === 'overview' ? 'Comparar sitios' : 'Volver al explorador'}</button></div></div>
-        <div className="notice" role={apiError ? 'alert' : undefined}><span className="notice-icon"><Activity size={16}/></span><span><strong>{apiError || (scenario.source === 'api' ? 'Análisis del backend conectado.' : 'Datos de demostración.')}</strong> {scenario.source === 'api' && !apiError ? 'Resultados basados en efemérides y relieve; verifica su resolución antes de tomar decisiones.' : 'Los datos ilustrativos no sirven para decisiones de misión.'}</span><button aria-label="Más información" title="El backend debe proporcionar efemérides y horizonte topográfico verificados"><CircleHelp size={16}/></button></div>
-        {tab === 'overview' ? <>
-          <div className="workspace-grid">
-            <section className="panel map-panel"><div className="panel-heading"><div><span className="section-kicker">01 / SELECCIÓN DE SITIO</span><h2>Explorador de superficie</h2></div><span className="icon-button" title="Vista esquemática"><Layers3 size={18}/></span></div><LunarMap selected={site.id} onSelect={setSite}/><div className="selected-site"><span className="selected-pin"><MapPin size={18}/></span><div><small>SITIO SELECCIONADO</small><strong>{site.name}</strong><span>{Math.abs(site.lat).toFixed(1)}° S · {Math.abs(site.lon).toFixed(1)}° {site.lon < 0 ? 'O' : 'E'}</span></div><ChevronRight size={18}/></div></section>
-            <section className="panel horizon-panel"><div className="panel-heading"><div><span className="section-kicker">02 / VISUALIZACIÓN</span><h2>Horizonte local</h2></div><span className="timestamp"><Clock3 size={14}/> {formatHour(date, hour)}</span></div><Horizon scenario={scenario} hour={hour}/><div className="horizon-status"><span className={`status-badge ${currentSample.sunVisible ? 'good' : 'bad'}`}><Sun size={14}/>{currentSample.sunVisible ? 'Sol visible' : 'Sol oculto'}</span><span className={`status-badge ${currentSample.earthVisible ? 'good blue-badge' : 'bad'}`}><Radio size={14}/>{currentSample.earthVisible ? 'Tierra visible' : 'Tierra oculta'}</span><span className="horizon-note">Elevación respecto al horizonte local</span></div></section>
-            <section className="panel controls-panel"><div className="panel-heading"><div><span className="section-kicker">03 / CONFIGURACIÓN</span><h2>Parámetros de misión</h2></div><Settings2 size={18} className="muted-icon"/></div><label className="field-label" htmlFor="date">FECHA DE INICIO (UTC)</label><input className="date-input" id="date" type="date" value={date} onChange={e => setDate(e.target.value || initialDate)}/><div className="control-divider"/><div className="field-label">MODO DE ANÁLISIS</div><div className="mode-toggle"><button className={mode === 'explorer' ? 'active' : ''} onClick={() => setMode('explorer')}>Explorer</button><button className={mode === 'analyst' ? 'active' : ''} onClick={() => setMode('analyst')}>Analyst</button></div><div className="control-divider"/><div className="field-label">VENTANA TEMPORAL</div><button className="select-like" title="El MVP analiza siete días">7 días <ChevronDown size={16}/></button><p className="field-hint">Muestras cada hora · {scenario.samples.length} puntos</p>{mode === 'analyst' && <div className="analyst-fields"><label>Sol visible mínimo <strong>{minSun}%</strong><input type="range" min="0" max="100" value={minSun} onChange={e => setMinSun(Number(e.target.value))}/></label><label>Tierra visible mínimo <strong>{minEarth}%</strong><input type="range" min="0" max="100" value={minEarth} onChange={e => setMinEarth(Number(e.target.value))}/></label><label>Blackout máximo <strong>{maxBlackout} h</strong><input type="range" min="0" max="72" value={maxBlackout} onChange={e => setMaxBlackout(Number(e.target.value))}/></label></div>}</section>
-          </div>
-          <div className="metrics-heading"><div><span className="section-kicker">MISSION INTELLIGENCE</span><h2>Resumen de condiciones</h2></div><span className="period-label"><Clock3 size={15}/> Periodo de 7 días {loading && '· Actualizando...'}</span></div>
-          <div className="metric-grid"><MetricCard icon={<Sun size={20}/>} label="Visibilidad solar" value={m.sunPercent} suffix="%" color="amber-bg" detail="Tiempo con Sol sobre el relieve"/><MetricCard icon={<Earth size={20}/>} label="Visibilidad terrestre" value={m.earthPercent} suffix="%" color="blue-bg" detail="Línea de vista directa"/><MetricCard icon={<Moon size={20}/>} label="Oscuridad más larga" value={m.longestDark} suffix="h" color="purple-bg" detail="Intervalo continuo sin Sol"/><MetricCard icon={<Radio size={20}/>} label="Blackout máximo" value={m.longestBlackout} suffix="h" color="mint-bg" detail="Sin visibilidad terrestre"/></div>
-          <div className="lower-grid"><section className="panel timeline-panel"><div className="panel-heading"><div><span className="section-kicker">04 / EVOLUCIÓN TEMPORAL</span><h2>Línea de tiempo de misión</h2></div><span className="timeline-help"><span className="legend-dot sun"/> Luz solar <span className="legend-dot earth"/> Tierra visible</span></div><Timeline scenario={scenario} hour={hour} onHourChange={setHour}/></section><section className="panel feasibility-panel"><div className="panel-heading"><div><span className="section-kicker">05 / EVALUACIÓN</span><h2>Factibilidad</h2></div><Gauge size={18} className="muted-icon"/></div><div className="feasibility-top"><div className={`score-orb ${status.feasible ? 'pass' : ''}`}>{status.count}<small>/3</small></div><div><strong>{status.feasible ? 'Cumple los criterios' : 'Revisar restricciones'}</strong><span>{status.count} de 3 condiciones satisfechas</span></div></div><div className="criteria-list"><div><span className={status.passed[0] ? 'criteria-ok' : 'criteria-no'}>{status.passed[0] ? <Check size={13}/> : <X size={13}/>}</span> Luz solar ≥ {minSun}% <strong>{m.sunPercent}%</strong></div><div><span className={status.passed[1] ? 'criteria-ok' : 'criteria-no'}>{status.passed[1] ? <Check size={13}/> : <X size={13}/>}</span> Tierra visible ≥ {minEarth}% <strong>{m.earthPercent}%</strong></div><div><span className={status.passed[2] ? 'criteria-ok' : 'criteria-no'}>{status.passed[2] ? <Check size={13}/> : <X size={13}/>}</span> Blackout ≤ {maxBlackout} h <strong>{m.longestBlackout} h</strong></div></div><button className="text-button" onClick={() => setMode('analyst')}>Ajustar criterios <ArrowRight size={15}/></button></section></div>
-        </> : <div className="compare-layout"><section className="panel comparison-panel"><div className="panel-heading"><div><span className="section-kicker">COMPARACIÓN DE ESCENARIOS</span><h2>Dos sitios, una ventana temporal</h2></div><span className="period-label"><Clock3 size={14}/> {date} · 7 días</span></div><div className="comparison-selectors"><div><label>SITIO A</label><div className="site-select-display"><MapPin size={17}/>{site.name}</div></div><span className="versus">VS</span><div><label htmlFor="compare-site">SITIO B</label><select id="compare-site" value={compareId} onChange={e => setCompareId(e.target.value)}>{SITES.filter(s => s.id !== site.id).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div></div><div className="comparison-table"><div className="table-head"><span>MÉTRICA</span><strong>{site.name}</strong><strong>{compared.site.name}</strong></div>{[['Visibilidad solar', `${m.sunPercent}%`, `${compareMetrics.sunPercent}%`, m.sunPercent, compareMetrics.sunPercent], ['Visibilidad terrestre', `${m.earthPercent}%`, `${compareMetrics.earthPercent}%`, m.earthPercent, compareMetrics.earthPercent], ['Oscuridad más larga', `${m.longestDark} h`, `${compareMetrics.longestDark} h`, -m.longestDark, -compareMetrics.longestDark], ['Blackout máximo', `${m.longestBlackout} h`, `${compareMetrics.longestBlackout} h`, -m.longestBlackout, -compareMetrics.longestBlackout], ['Disponibilidad simultánea', `${m.concurrentPercent}%`, `${compareMetrics.concurrentPercent}%`, m.concurrentPercent, compareMetrics.concurrentPercent]].map(([name, a, b, av, bv]) => <div className="table-row" key={String(name)}><span>{name}</span><strong className={Number(av) > Number(bv) ? 'winner' : ''}>{a}{Number(av) > Number(bv) && <ArrowUpRight size={14}/>}</strong><strong className={Number(bv) > Number(av) ? 'winner' : ''}>{b}{Number(bv) > Number(av) && <ArrowUpRight size={14}/>}</strong></div>)}</div></section><section className="panel compare-aside"><span className="section-kicker">ANÁLISIS RÁPIDO</span><h2>Balance de misión</h2><p>Compara luz, comunicaciones y continuidad durante el mismo periodo.</p><div className="compare-mini"><span><Sun size={17}/> Ventaja solar</span><strong>{m.sunPercent >= compareMetrics.sunPercent ? site.name : compared.site.name} <ArrowDownRight size={15}/></strong></div><div className="compare-mini"><span><Radio size={17}/> Ventaja de comunicación</span><strong>{m.earthPercent >= compareMetrics.earthPercent ? site.name : compared.site.name} <ArrowDownRight size={15}/></strong></div><div className="compare-mini"><span><ShieldCheck size={17}/> Cumplimiento</span><strong>{verdict(m, minSun, minEarth, maxBlackout).count} / 3 vs {verdict(compareMetrics, minSun, minEarth, maxBlackout).count} / 3</strong></div><button className="primary-button full" onClick={() => { setSite(compared.site); setTab('overview') }}>Explorar {compared.site.name} <ArrowRight size={16}/></button></section></div>}
-        <footer><span>© 2026 LUNARPATH AI · NASA SPACE APPS CHALLENGE</span><span>{scenario.source === 'api' && compared.source === 'api' && !apiError ? 'EFEMÉRIDES JPL / RELIEVE LOLA / UTC' : 'INTERFAZ DEMO / UTC / DATOS NO VALIDADOS'}</span></footer>
-      </main>
-    </div>
+  const [sites, setSites] = useState<CatalogSite[]>([]), [selected, setSelected] = useState<Point | null>(null)
+  const [checked, setChecked] = useState<string[]>(['mouton', 'malapert'])
+  const [date, setDate] = useState(today), [days, setDays] = useState(3), [step, setStep] = useState(60)
+  const [required, setRequired] = useState(6), [minSun, setMinSun] = useState(40), [minEarth, setMinEarth] = useState(40), [distance, setDistance] = useState(250)
+  const [view, setView] = useState<'globe' | 'local'>('globe'), [focus, setFocus] = useState(0)
+  const [result, setResult] = useState<Result | null>(null), [terrain, setTerrain] = useState<Mesh | null>(null)
+  const [options, setOptions] = useState<Option[]>([]), [hour, setHour] = useState(0), [playing, setPlaying] = useState(false)
+  const [busy, setBusy] = useState(''), [error, setError] = useState(''), [terrainError, setTerrainError] = useState('')
+  const [status, setStatus] = useState<{ dem_ready: boolean } | null>(null)
+  const [query, setQuery] = useState(''), [tab, setTab] = useState<'explore' | 'compare' | 'sources'>('explore')
+  const [searchDates, setSearchDates] = useState(true), [customLat, setCustomLat] = useState('-89.5'), [customLon, setCustomLon] = useState('0')
+  const operation = useRef(0)
+  const [resultsRequired, setResultsRequired] = useState(6)
+  const [guideOpen, setGuideOpen] = useState(false)
+  const [profile, setProfile] = useState<{ azimuth_deg: number; elevation_deg: number }[] | null>(null)
+  const [profileLoading, setProfileLoading] = useState(false), [profileError, setProfileError] = useState('')
+  useEffect(() => {
+    const c = new AbortController()
+    Promise.all([request<CatalogSite[]>('/api/v1/sites', undefined, c.signal), request<{ dem_ready: boolean }>('/api/v1/status', undefined, c.signal)])
+      .then(([catalog, state]) => { setSites(catalog); setSelected({ ...catalog[0], label: catalog[0].name }); setStatus(state) })
+      .catch(e => { if (!c.signal.aborted) setError(`No se pudo conectar con el backend: ${e.message}`) })
+    return () => c.abort()
+  }, [])
+  useEffect(() => {
+    setTerrain(null); setTerrainError('')
+    if (!selected) return
+    const c = new AbortController()
+    request<Mesh>('/api/v1/terrain/mesh', { site: selected, radius_km: 25, resolution: 65 }, c.signal).then(setTerrain)
+      .catch(e => { if (!c.signal.aborted) setTerrainError(e.message) })
+    return () => c.abort()
+  }, [selected])
+  useEffect(() => {
+    if (!playing || !result) return
+    const timer = setInterval(() => setHour(i => (i + 1) % result.samples.length), 180)
+    return () => clearInterval(timer)
+  }, [playing, result])
+  useEffect(() => {
+    setProfile(null); setProfileError('')
+    if (!result) { setProfileLoading(false); return }
+    const c = new AbortController(); setProfileLoading(true)
+    request<{ profile: { azimuth_deg: number; elevation_deg: number }[] }>('/api/v1/terrain/horizon', { site: result.scenario.site, max_distance_km: result.scenario.max_horizon_distance_km || 250, observer_height_m: 2, azimuth_step_deg: 1 }, c.signal)
+      .then(data => { setProfile(data.profile); setProfileLoading(false) })
+      .catch(e => { if (!c.signal.aborted) { setProfileError(e.message); setProfileLoading(false) } })
+    return () => c.abort()
+  }, [result])
+  function select(point: Point) { operation.current++; setBusy(''); setSelected(point); setResult(null); setHour(0); setPlaying(false); setError('') }
+  function scenario(site: Point) {
+    const start = `${date}T00:00:00Z`
+    return { site, start_utc: start, end_utc: new Date(Date.parse(start) + days * 86400000).toISOString(), step_minutes: step,
+      use_dem_horizon: true, observer_height_m: 2, max_horizon_distance_km: distance,
+      constraints: { min_concurrent_hours: required, min_sunlit_fraction: minSun / 100, min_earth_visible_fraction: minEarth / 100 } }
+  }
+  async function analyze() {
+    if (!selected) return
+    const id = ++operation.current; setBusy('Consultando Horizons y horizonte LOLA…'); setError(''); setPlaying(false)
+    try { const data = await request<Result>('/api/v1/scenarios/evaluate', scenario(selected)); if (id === operation.current) { setResult(data); setHour(0) } }
+    catch (e) { if (id === operation.current) setError((e as Error).message) }
+    finally { if (id === operation.current) setBusy('') }
+  }
+  async function compare() {
+    if (!selected) return
+    const chosen = sites.filter(s => checked.includes(s.id)).map(s => ({ ...s, label: s.name }))
+    const id = ++operation.current; setBusy(`Evaluando ${chosen.length * (searchDates ? 3 : 1)} alternativas con datos NASA…`); setError(''); setTab('compare'); setPlaying(false)
+    try { const data = await request<SearchResult>('/api/v1/scenarios/search', { scenario: scenario(selected), sites: chosen, date_offsets_days: searchDates ? [0, 3, 7] : [0] }); if (id === operation.current) { setOptions(data.options); setResultsRequired(required) } }
+    catch (e) { if (id === operation.current) setError((e as Error).message) }
+    finally { if (id === operation.current) setBusy('') }
+  }
+  function openOption(o: Option) { operation.current++; setBusy(''); setSelected(o.site); setResult(o.result); setHour(0); setDate(o.result.scenario.start_utc.slice(0, 10)); setTab('explore'); setPlaying(false); setFocus(f => f + 1) }
+  function download() {
+    if (!result) return
+    const rows = ['time_utc,sun_azimuth_deg,sun_elevation_deg,sun_horizon_deg,sun_visible,earth_azimuth_deg,earth_elevation_deg,earth_horizon_deg,earth_visible', ...result.samples.map(s => [s.time_utc, s.sun.azimuth_deg, s.sun.elevation_deg, s.sun.horizon_deg, s.sun.visible, s.earth.azimuth_deg, s.earth.elevation_deg, s.earth.horizon_deg, s.earth.visible].join(','))]
+    const url = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' })); const a = document.createElement('a'); a.href = url; a.download = `lunar-${date}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+  const sample = result?.samples[Math.min(hour, result.samples.length - 1)]
+  const region = sites.find(s => s.latitude_deg === selected?.latitude_deg && s.longitude_deg === selected?.longitude_deg)
+  const total = result ? Date.parse(result.scenario.end_utc) - Date.parse(result.scenario.start_utc) : 1
+  return <div className="navigator">
+    <header className="nav-header"><a className="nav-brand" href="#"><span className="brand-orbit"><Moon size={21}/></span><span>LUNAR<span className="brand-light">PATH</span><small>SOUTH POLE NAVIGATOR</small></span></a><nav aria-label="Navegación principal">{[['explore', 'Explorador'], ['compare', 'Comparar ventanas'], ['sources', 'Datos y método']].map(([id, label]) => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id as typeof tab)}>{label}</button>)}</nav><span className="connection"><i className={status?.dem_ready ? 'ready' : ''}/>{status?.dem_ready ? 'NASA DATA CONNECTED' : 'CONECTANDO BACKEND'}</span></header>
+    <div className="nav-intro"><div><div className="eyebrow">NASA SPACE APPS / LUNAR LANDING SITE NAVIGATOR</div><h1>El próximo paso empieza<br/>con una buena <em>ventana.</em></h1><p>Explora el polo sur. Sigue al Sol y a la Tierra. Compara dónde y cuándo coinciden las condiciones que necesitas.</p></div><div className="intro-aside"><span>01 — EXPLORA</span><span>02 — DEFINE TU MISIÓN</span><span>03 — COMPARA VENTANAS</span><a href="https://trek.nasa.gov/moon/" target="_blank" rel="noreferrer">Abrir portal Moon Trek <ExternalLink size={13}/></a></div></div>
+    {error && <div className="nav-error" role="alert"><AlertCircle size={18}/><span>{error}</span><button onClick={() => setError('')} aria-label="Cerrar aviso"><X size={16}/></button></div>}
+    {busy && <div className="nav-loading" role="status"><LoaderCircle className="spin" size={18}/>{busy}<span>La primera consulta puede tardar. No se sustituyen fallos por datos demo.</span></div>}
+    {tab === 'sources' ? <section className="source-page"><span className="section-label">TRAZABILIDAD / CÓMO SE CALCULA</span><h2>Tres fuentes. Una decisión explicada.</h2><div className="source-cards">{[
+      ['01', 'JPL Horizons', '¿Dónde están el Sol y la Tierra?', 'Calcula azimut y elevación desde las coordenadas lunares elegidas, para cada instante UTC.', 'https://ssd.jpl.nasa.gov/horizons/'],
+      ['02', 'Moon Trek', '¿Qué lugar estás explorando?', 'El globo carga imágenes oficiales LRO WAC de Moon Trek. El visor 3D es propio y utiliza esos servicios cartográficos.', 'https://trek.nasa.gov/moon/'],
+      ['03', 'LOLA / PDS y PGDA', '¿Qué bloquea el horizonte?', 'El motor traza rayos sobre el DEM LOLA de 240 m/píxel. También conserva acceso a los productos PGDA 78 y 90.', 'https://pgda.gsfc.nasa.gov/products/90']
+    ].map(([n, title, question, text, link]) => <article key={n}><span>{n}</span><h3>{title}</h3><strong>{question}</strong><p>{text}</p><a href={link} target="_blank" rel="noreferrer">Fuente oficial <ExternalLink size={14}/></a></article>)}</div><div className="method-note"><h3>Qué significa “cumple”</h3><p>Se cumplen tus mínimos de iluminación, visibilidad de la Tierra y duración continua. El orden prioriza cumplimiento, ventana simultánea más larga y fracción simultánea. Métricas iguales representan empates.</p><p>Solo se comparan los sitios y fechas solicitados. El paso temporal puede omitir eventos breves; la resolución del terreno y la distancia de trazado limitan el horizonte. No se calcula trayectoria de descenso, seguridad de aterrizaje, energía de equipos ni enlace con estaciones terrestres.</p><a href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer">Consultar documentación de la API <ExternalLink size={14}/></a></div></section> : <>
+      <div className="exploration-layout"><aside className="mission-setup"><div className="section-label">TU EXPLORACIÓN <span>01</span></div><h2>Define el escenario</h2><label>Buscar sitio<input value={query} onChange={e => setQuery(e.target.value)} placeholder="Nombre o región"/></label><div className="catalog-list">{sites.filter(s => s.name.toLowerCase().includes(query.toLowerCase())).map((s, i) => <div className={`catalog-row ${region?.id === s.id ? 'selected' : ''}`} key={s.id}><button className="catalog-select" onClick={() => select({ ...s, label: s.name })}><span>{String(i + 1).padStart(2, '0')}</span><div><strong>{s.name}</strong><small>{coords(s)}</small></div></button><input type="checkbox" aria-label={`Comparar ${s.name}`} checked={checked.includes(s.id)} onChange={e => setChecked(ids => e.target.checked ? [...ids, s.id].slice(-3) : ids.filter(id => id !== s.id))}/></div>)}</div>
+        <details className="custom-point"><summary>Elegir coordenadas propias</summary><div className="field-pair"><label>Latitud<input type="number" min="-90" max="-75" step="0.01" value={customLat} onChange={e => setCustomLat(e.target.value)}/></label><label>Longitud<input type="number" min="-180" max="180" step="0.01" value={customLon} onChange={e => setCustomLon(e.target.value)}/></label></div><button className="nav-secondary" onClick={() => { const lat = Number(customLat), lon = Number(customLon); if (!customLat || !customLon || !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > -75 || Math.abs(lon) > 180) { setError('Usa latitud entre −90 y −75 y longitud entre −180 y 180.'); return } select({ latitude_deg: lat, longitude_deg: lon, label: 'Punto personalizado' }) }}>Marcar punto</button></details>
+        <div className="setup-divider"/><label>Inicio del análisis · UTC<input type="date" value={date} onChange={e => { if (e.target.value) setDate(e.target.value) }}/></label><div className="field-pair"><label>Periodo<select value={days} onChange={e => { const d = Number(e.target.value); setDays(d); if (d * 1440 / step > 500) setStep(60) }}><option value="1">1 día</option><option value="3">3 días</option><option value="7">7 días</option><option value="14">14 días</option></select></label><label>Paso temporal<select value={step} onChange={e => setStep(Number(e.target.value))}><option value="60">60 minutos</option><option value="30" disabled={days > 7}>30 minutos</option><option value="15" disabled={days > 3}>15 minutos</option></select></label></div>
+        <label>Ambas condiciones durante<strong className="range-value">{required} h continuas</strong><input type="range" min="0" max="24" value={required} onChange={e => setRequired(Number(e.target.value))}/></label><details className="advanced"><summary>Umbrales y modelo del terreno</summary><label>Iluminación mínima: {minSun}%<input type="range" min="0" max="100" value={minSun} onChange={e => setMinSun(Number(e.target.value))}/></label><label>Tierra visible mínima: {minEarth}%<input type="range" min="0" max="100" value={minEarth} onChange={e => setMinEarth(Number(e.target.value))}/></label><label>Horizonte hasta<select value={distance} onChange={e => setDistance(Number(e.target.value))}><option value="50">50 km</option><option value="100">100 km</option><option value="250">250 km</option></select></label></details>
+        <button className="nav-primary" disabled={!!busy || !selected || !status?.dem_ready} onClick={analyze}>{busy ? <LoaderCircle size={17} className="spin"/> : <Crosshair size={17}/>}Analizar este sitio<ArrowRight size={16}/></button><p className="setup-foot">Horizons + horizonte LOLA · Observador a 2 m<br/>Puntos de referencia regionales, no sitios aprobados.</p></aside>
+      <section className="scene-section"><div className="scene-header"><div><span className="section-label">EXPLORADOR LUNAR <span>02</span></span><h2>{selected?.label || region?.name || 'Polo sur lunar'}</h2><span className="selected-coords">{selected && coords(selected)}</span></div><div className="view-toggle"><button className={view === 'globe' ? 'active' : ''} onClick={() => setView('globe')}><Globe2 size={15}/>Globo</button><button disabled={!terrain} className={view === 'local' ? 'active' : ''} onClick={() => setView('local')}><Layers3 size={15}/>Terreno</button><button onClick={() => setFocus(f => f + 1)} title="Centrar sitio" aria-label="Centrar sitio"><Crosshair size={16}/></button></div></div>
+        <MoonScene sites={sites} selected={selected} result={result} sampleIndex={hour} terrain={terrain} view={view} focus={focus} onSelect={s => select({ ...s, label: s.name })} onPick={p => { if (p.latitude_deg > -75) { setError('Selecciona un punto al sur de 75° S, dentro de la cobertura LOLA.'); return } select(p) }}/>
+        <div className="scene-bottom"><span><i className="legend-marker site"/>Sitios</span><span><i className="legend-marker selected"/>Punto elegido</span><span><i className="legend-marker sun"/>Sol</span><span><i className="legend-marker earth"/>Tierra</span><span className="scene-scale">Direcciones reales · Tamaños y distancias simbólicos</span></div>
+        {terrainError && <div className="terrain-warning" role="status">Terreno: {terrainError}</div>}<div className="site-context"><MapPin size={18}/><div><strong>{region?.name || 'Punto personalizado'}</strong><p>{region?.description || 'Coordenadas seleccionadas para explorar sus condiciones.'}</p></div><span className="terrain-badge">{terrain ? 'LOLA · 240 m/píxel' : 'Cargando relieve'}</span></div>
+        {sample && <div className="scene-live"><span>{utcLabel(sample.time_utc)}</span><button onClick={() => setPlaying(p => !p)} aria-label={playing ? 'Pausar' : 'Reproducir'}>{playing ? <Pause size={16}/> : <Play size={16}/>}</button><input aria-label="Tiempo en el visor 3D" type="range" min="0" max={result!.samples.length - 1} value={hour} onChange={e => { setHour(Number(e.target.value)); setPlaying(false) }}/></div>}
+      </section></div>
+      <div className="comparison-callout"><div><span className="section-label">BUSCA UNA MEJOR VENTANA</span><h2>Un lugar cambia con el tiempo.</h2><p>Marca hasta tres sitios en la lista y compara con los mismos requisitos.</p></div><div className="comparison-actions"><label className="checkbox-label"><input type="checkbox" checked={searchDates} onChange={e => setSearchDates(e.target.checked)}/>También inicios +3 y +7 días</label><button className="nav-primary" onClick={compare} disabled={!!busy || !checked.length || !status?.dem_ready}>Comparar {checked.length} sitios <ArrowRight size={17}/></button></div></div>
+      {tab === 'compare' && <section className="results-section"><ResultsPanel options={options} selectedIndex={options.some(o => o.result === result) ? options.findIndex(o => o.result === result) : null} requiredHours={resultsRequired} loading={!!busy} error={error || null} onSelect={i => openOption(options[i])}/></section>}
+      {result && sample ? <section className="analysis-section"><div className="analysis-heading"><div><span className="section-label">TU VENTANA EN DETALLE</span><h2>{result.scenario.site.label || 'Sitio elegido'} <span className={result.metrics.constraints_met ? 'result-pass' : 'result-fail'}>{result.metrics.constraints_met ? 'Cumple los requisitos' : 'No cumple los requisitos'}</span></h2><p>{utcLabel(result.scenario.start_utc)} — {utcLabel(result.scenario.end_utc)}</p></div><button className="nav-secondary" onClick={download}><Download size={15}/>Exportar CSV</button></div>
+        <div className="condition-cards"><article><Sun className="solar-color" size={20}/><small>Iluminación solar</small><strong>{pct(result.metrics.sunlit_fraction)}</strong><p>del periodo analizado</p></article><article><Earth className="earth-color" size={20}/><small>Tierra visible</small><strong>{pct(result.metrics.earth_visible_fraction)}</strong><p>visibilidad geométrica</p></article><article><Radio size={20}/><small>Ventana simultánea</small><strong>{result.metrics.longest_concurrent_hours.toFixed(1)} h</strong><p>máxima duración continua</p></article><article><Moon size={20}/><small>Oscuridad más larga</small><strong>{result.metrics.longest_darkness_hours.toFixed(1)} h</strong><p>intervalo continuo sin Sol</p></article></div>
+        <div className="live-time"><div className="analysis-heading"><h3>{utcLabel(sample.time_utc)}</h3><div className="play-controls"><button onClick={() => setHour(0)} aria-label="Volver al inicio"><RotateCcw size={17}/></button><button onClick={() => setPlaying(p => !p)} aria-label={playing ? 'Pausar animación' : 'Reproducir animación'}>{playing ? <Pause size={17}/> : <Play size={17}/>}</button></div></div>{(['sun', 'earth', 'both'] as const).map(body => <div className={`real-timeline ${body}`} key={body}><span>{body === 'sun' ? 'Sol visible' : body === 'earth' ? 'Tierra visible' : 'Ambas'}</span><div>{result.timeline.segments.map((s, i) => <i key={i} className={(body === 'both' ? s.sun_visible && s.earth_visible : body === 'sun' ? s.sun_visible : s.earth_visible) ? 'on' : ''} style={{ width: `${s.duration_hours * 3600000 / total * 100}%` }} title={`${utcLabel(s.start_utc)} — ${utcLabel(s.end_utc)}`}/>)}</div></div>)}<input aria-label="Hora de simulación" type="range" min="0" max={result.samples.length - 1} value={hour} onChange={e => { setHour(Number(e.target.value)); setPlaying(false) }}/><div className="timeline-ends"><span>{utcLabel(result.scenario.start_utc)}</span><span>{utcLabel(result.scenario.end_utc)}</span></div></div>
+        <div className="body-readouts">{(['sun', 'earth'] as const).map(body => <article key={body}><span className={body === 'sun' ? 'solar-color' : 'earth-color'}>{body === 'sun' ? <Sun size={23}/> : <Earth size={23}/>}</span><div><h3>{body === 'sun' ? 'Sol' : 'Tierra'} · {sample[body].visible ? 'Centro visible' : 'Centro bajo el horizonte'}</h3><p>Azimut {sample[body].azimuth_deg.toFixed(2)}° · Elevación {sample[body].elevation_deg.toFixed(2)}° · Horizonte {sample[body].horizon_deg.toFixed(2)}°</p><small>Disco visible: {pct(sample[body].disk_fraction)}. La flecha 3D indica la dirección desde el punto.</small></div></article>)}</div>
+        <div className="window-strip"><strong>Ventanas con ambas condiciones</strong>{result.metrics.concurrent_windows.length ? result.metrics.concurrent_windows.slice(0, 4).map(w => <span key={w.start_utc}>{utcLabel(w.start_utc)} <ArrowRight size={13}/> {utcLabel(w.end_utc)} <b>{w.duration_hours.toFixed(1)} h</b></span>) : <p>No hay coincidencia detectada. Compara otras fechas o sitios.</p>}</div><p className="precision-note">Modelo: {result.horizon_source} · Paso: {result.scenario.step_minutes} min · Relieve: 240 m/píxel. {result.precision_note}</p>
+      </section> : <div className="analysis-empty"><Sun size={25}/><div><h3>Elige un sitio. Descubre su ventana.</h3><p>Al analizar, las posiciones del Sol y la Tierra aparecerán en el 3D y podrás recorrer el tiempo.</p></div></div>}
+    </>}
+    {tab !== 'sources' && result && <section className="analysis-section"><HorizonPanel profile={profile} sample={sample || null} timeUtc={sample?.time_utc || null} source={result.horizon_source} loading={profileLoading} error={profileError || null}/></section>}
+    <footer className="navigator-footer"><span>LUNARPATH / NASA SPACE APPS</span><p>Estimaciones de iluminación y visibilidad. No certifican seguridad de alunizaje.</p><button onClick={() => setGuideOpen(true)}>Cómo usar el explorador <ArrowRight size={14}/></button><button onClick={() => { setTab('sources'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Fuentes y límites <ArrowRight size={14}/></button></footer>
+    <GuidePanel open={guideOpen} onClose={() => setGuideOpen(false)}/>
   </div>
 }
