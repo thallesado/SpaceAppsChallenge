@@ -17,6 +17,7 @@ Proyecto principal: [thallesado/SpaceAppsChallenge](https://github.com/thallesad
 | Entender de un vistazo la explicación visual de Datos y método | [Diagramas y ejemplo interactivo](16-explicacion-visual-del-metodo.md) |
 | Ver propuestas y resultados directamente en el Explorador | [Consulta interactiva en el mapa](17-consulta-interactiva-en-mapa.md) |
 | Entender y comprobar resultados cero y gráficos de visibilidad | [Auditoría de ceros y resultados visuales](18-verificacion-de-ceros-y-resultados-visuales.md) |
+| Entender la baliza, direcciones, luz y sombras del 3D | [Escena 3D del observador](19-escena-3d-observador-luz-y-sombras.md) |
 
 **Decisiones vigentes:** Blender como visor 3D y Moon Trek como mapa complementario; coordenadas personalizadas y candidatos generados; Gemini interpreta y NASA calcula; sin métricas ficticias. Las recomendaciones comparan candidatos y fechas muestreados, no certifican seguridad de alunizaje. Las peticiones orbitales requieren otra capacidad científica y no se convierten silenciosamente en análisis de superficie.
 

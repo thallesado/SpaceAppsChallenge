@@ -1,0 +1,30 @@
+{
+  "source": "real NASA-backed evaluation, no mocked positions or terrain; cache allowed",
+  "observer_radius_matches_dem": true,
+  "mesh_matches_fine_dem_at_coverage_boundary": true,
+  "api_angles_match_rendered_directions": true,
+  "directional_light_matches_horizons": true,
+  "solar_arrow_points_to_observer": true,
+  "earth_arrow_points_to_earth": true,
+  "actual_shadow_render_changed": {
+    "changedPixels": 21909,
+    "meanAbsoluteChannelDifference": 0.5857603534910627
+  },
+  "desktop_body_diameters_px": {
+    "sun": 131.0680567259897,
+    "earth": 88.13708228181348
+  },
+  "mobile_body_diameters_px": {
+    "sun": 50.9692435851347,
+    "earth": 36.55018023755303
+  },
+  "earth_focus_enlarges": true,
+  "hidden_and_visible_states": true,
+  "reduced_motion": true,
+  "display_controls_trigger_no_evaluation": true,
+  "evaluations": 2,
+  "overflow": false,
+  "errors": [],
+  "warnings": [],
+  "scope": "Visual shadows on the local mesh, not full 250 km horizon, radiometry or landing certification"
+}

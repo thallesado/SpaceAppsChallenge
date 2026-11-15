@@ -27,6 +27,10 @@ El usuario pidió sustituir la lista predominante de coordenadas por referencias
 
 El usuario sospechó falta de datos por tres alternativas a cero. Se reprodujeron cinco casos con fuentes NASA, consultas nuevas sin caché del cliente, SPICE y un trazador cartesiano independiente. Se confirmaron ceros en la fecha original y controles de 24 h y 19 h; no se alteraron métricas para hacerlas positivas. Se añadieron anillos, curvas astro/horizonte, causas breves, línea temporal y requisitos gráficos. Archivos: `VisibilityVisuals.tsx`, CSS, integración localizada de ResultsPanel, script de auditoría y E2E. 59 tests, build y navegador real aprobados; selección y móvil preservados. [Explicación, límites y evidencia](18-verificacion-de-ceros-y-resultados-visuales.md).
 
+### Observador y luz en el 3D, posterior a `b8d2bc6`
+
+El usuario pidió que se entienda el origen de las direcciones, astros mayores y luz/sombra perceptible, con pruebas y publicación. Se añadió baliza, flechas con sentidos distintos, enfoque, escala visual, fase iluminada y sombras locales orientadas por Horizons. Se corrigió coherencia de malla/altura fina cerca de cobertura y etiquetas de resolución. Archivos principales: `MoonScene.tsx`, `scene-clarity.css`, `App.tsx` y E2E. 59 tests y build correctos; render real con comparación de píxeles, vectores, alturas, caso de borde, móvil, recorrido general y fallos explícitos. [Detalle, evidencia y límites visuales](19-escena-3d-observador-luz-y-sombras.md). Motor científico sin cambios.
+
 ## Cómo añadir una entrada
 
 Registrar problema u objetivo, comportamiento final, decisión del usuario que reemplaza una anterior, módulos afectados, pruebas realmente ejecutadas, evidencia guardada, pendientes y publicación si aplica. No escribir un hash de commit antes de que exista: usar descripción y corte funcional anterior, o enlazar el hash en una actualización posterior.
