@@ -1,0 +1,38 @@
+import {chromium,expect} from '@playwright/test';
+import {existsSync,readdirSync,mkdirSync,writeFileSync} from 'node:fs';
+import {join,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+process.chdir(join(dirname(fileURLToPath(import.meta.url)),'..'));
+const root=join(process.env.LOCALAPPDATA,'ms-playwright');
+const binary=readdirSync(root).filter(n=>n.startsWith('chromium-')).sort().reverse().map(n=>join(root,n,'chrome-win64','chrome.exe')).find(existsSync);
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||binary,args:['--enable-unsafe-swiftshader']});
+try{
+  const page=await browser.newPage({viewport:{width:1440,height:1100}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://127.0.0.1:5174',{waitUntil:'networkidle',timeout:120000});
+  await page.waitForFunction(()=>document.querySelector('.connection')?.textContent?.includes('CONNECTED'));
+  await page.getByText('Elegir coordenadas propias',{exact:true}).click();
+  await page.getByLabel('Latitud',{exact:true}).fill('-89');await page.getByLabel('Longitud',{exact:true}).fill('0');
+  await page.getByRole('button',{name:'Marcar punto',exact:true}).click();
+  await page.locator('input[type=date]').fill('2026-11-15');await page.locator('.mission-setup select').first().selectOption('1');
+  await page.locator('.checkbox-label input[type=checkbox]').uncheck();
+  const response=page.waitForResponse(r=>r.url().endsWith('/scenarios/search'),{timeout:180000});
+  await page.getByRole('button',{name:'Comparar 3 sitios',exact:true}).click();
+  const api=await response;assert.equal(api.status(),200);const data=await api.json();assert.equal(data.options.length,3);
+  await expect(page.locator('.visibility-visuals')).toHaveCount(3);
+  const zero=data.options.findIndex(o=>o.site.latitude_deg===-89&&o.site.longitude_deg===0),positive=data.options.findIndex(o=>o.site.latitude_deg===-85.98);
+  assert.ok(zero>=0&&positive>=0);assert.equal(data.options[zero].result.metrics.sunlit_fraction,0);assert.equal(data.options[zero].result.metrics.earth_visible_fraction,0);
+  const negativeCard=page.locator('.insights-option').nth(zero),positiveCard=page.locator('.insights-option').nth(positive);
+  await expect(negativeCard).toContainText('El relieve tapa el Sol');await expect(negativeCard).toContainText('Tierra bajo el horizonte');
+  await expect(negativeCard).toContainText('24 posiciones por astro');await expect(negativeCard).toContainText('Sin ventana');
+  await expect(positiveCard).toContainText('19.0 h');await expect(positiveCard).toContainText('Visible durante todo el periodo');
+  await expect(page.locator('.visibility-timeline-track')).toHaveCount(9);await expect(page.locator('.visibility-clearance')).toHaveCount(6);
+  mkdirSync('artifacts',{recursive:true});await negativeCard.screenshot({path:'artifacts/visibility-zero.png'});await positiveCard.screenshot({path:'artifacts/visibility-positive.png'});
+  await page.setViewportSize({width:390,height:844});await negativeCard.screenshot({path:'artifacts/visibility-mobile.png'});
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);assert.equal(errors.length,0);
+  await negativeCard.getByRole('button',{name:/Seleccionar alternativa/}).click();
+  await expect(page.locator('.query-map')).toBeVisible();
+  const report={source:'real NASA-backed API; no provider or result mocking, cache allowed',options:3,zero_case_reason_matches_sample_data:true,positive_control_hours:data.options[positive].result.metrics.longest_concurrent_hours,samples_per_body:24,clearance_charts:6,timeline_tracks:9,selection_opens_map:true,mobile_width:390,overflow,errors};
+  writeFileSync('../docs/VALIDACION_RESULTADOS_VISUALES.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+}finally{await browser.close()}

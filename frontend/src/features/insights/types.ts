@@ -45,6 +45,7 @@ export type Result = {
   horizon_source: string
   site_height_km_used: number
   precision_note: string
+  timeline?: {segments:{start_utc:string;end_utc:string;duration_hours:number;sun_visible:boolean;earth_visible:boolean}[]}
 }
 
 export type Option = {

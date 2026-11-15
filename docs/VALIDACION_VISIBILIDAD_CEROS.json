@@ -1,0 +1,317 @@
+{
+  "synthetic": false,
+  "scope": "Horizons without cache, SPICE angles, independent Cartesian rays on the same NASA DEM, and duration integration. Not landing certification.",
+  "cases": [
+    {
+      "site": {
+        "latitude_deg": -89,
+        "longitude_deg": 0
+      },
+      "date": "2026-11-15",
+      "source": "LOLA_MULTIRESOLUTION_20_240M",
+      "height_km": -0.3845,
+      "metrics": {
+        "concurrent_windows": [],
+        "longest_concurrent_hours": 0.0,
+        "sunlit_fraction": 0.0,
+        "earth_visible_fraction": 0.0,
+        "concurrent_fraction": 0.0,
+        "longest_darkness_hours": 24.0,
+        "longest_earth_blackout_hours": 24.0,
+        "sunlit_windows": [],
+        "earth_visible_windows": [],
+        "constraints_met": false
+      },
+      "bodies": {
+        "sun": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 4.2171033753923837e-07,
+          "elevation_range_deg": [
+            1.142573,
+            1.33419
+          ],
+          "terrain_horizon_range_deg": [
+            2.2920188349055852,
+            3.358039409316609
+          ],
+          "best_margin_deg": -0.9578288349055852,
+          "independent_visible_hours": 0.0,
+          "independent_horizon_match": true
+        },
+        "earth": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 2.314565295868931e-05,
+          "elevation_range_deg": [
+            -2.554089,
+            -1.367781
+          ],
+          "terrain_horizon_range_deg": [
+            2.227407264814509,
+            2.3427557646520794
+          ],
+          "best_margin_deg": -3.595188264814509,
+          "independent_visible_hours": 0.0,
+          "independent_horizon_match": true
+        }
+      },
+      "independent_longest_concurrent_hours": 0.0,
+      "independent_concurrent_hours": 0.0
+    },
+    {
+      "site": {
+        "latitude_deg": -88.3404,
+        "longitude_deg": 0
+      },
+      "date": "2026-11-15",
+      "source": "LOLA_MULTIRESOLUTION_20_240M",
+      "height_km": -1.0425,
+      "metrics": {
+        "concurrent_windows": [],
+        "longest_concurrent_hours": 0.0,
+        "sunlit_fraction": 0.0,
+        "earth_visible_fraction": 0.0,
+        "concurrent_fraction": 0.0,
+        "longest_darkness_hours": 24.0,
+        "longest_earth_blackout_hours": 24.0,
+        "sunlit_windows": [],
+        "earth_visible_windows": [],
+        "constraints_met": false
+      },
+      "bodies": {
+        "sun": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 4.898646541739993e-07,
+          "elevation_range_deg": [
+            0.869478,
+            1.188166
+          ],
+          "terrain_horizon_range_deg": [
+            15.603242640495093,
+            16.104556869733777
+          ],
+          "best_margin_deg": -14.720553750202477,
+          "independent_visible_hours": 0.0,
+          "independent_horizon_match": true
+        },
+        "earth": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 2.285413829317129e-05,
+          "elevation_range_deg": [
+            -1.895193,
+            -0.709683
+          ],
+          "terrain_horizon_range_deg": [
+            3.585331271512392,
+            3.5958913473531218
+          ],
+          "best_margin_deg": -4.300818745522822,
+          "independent_visible_hours": 0.0,
+          "independent_horizon_match": true
+        }
+      },
+      "independent_longest_concurrent_hours": 0.0,
+      "independent_concurrent_hours": 0.0
+    },
+    {
+      "site": {
+        "latitude_deg": -89.6596,
+        "longitude_deg": 0
+      },
+      "date": "2026-11-15",
+      "source": "LOLA_MULTIRESOLUTION_20_240M",
+      "height_km": -0.4135,
+      "metrics": {
+        "concurrent_windows": [],
+        "longest_concurrent_hours": 0.0,
+        "sunlit_fraction": 0.0,
+        "earth_visible_fraction": 0.0,
+        "concurrent_fraction": 0.0,
+        "longest_darkness_hours": 24.0,
+        "longest_earth_blackout_hours": 24.0,
+        "sunlit_windows": [],
+        "earth_visible_windows": [],
+        "constraints_met": false
+      },
+      "bodies": {
+        "sun": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 4.475051991192913e-07,
+          "elevation_range_deg": [
+            1.415542,
+            1.480045
+          ],
+          "terrain_horizon_range_deg": [
+            12.308960230487527,
+            13.299713814710616
+          ],
+          "best_margin_deg": -10.828915230524242,
+          "independent_visible_hours": 0.0,
+          "independent_horizon_match": true
+        },
+        "earth": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 2.338173114013742e-05,
+          "elevation_range_deg": [
+            -3.212854,
+            -2.025748
+          ],
+          "terrain_horizon_range_deg": [
+            0.8587173516250469,
+            0.898399607989723
+          ],
+          "best_margin_deg": -2.884465351625047,
+          "independent_visible_hours": 0.0,
+          "independent_horizon_match": true
+        }
+      },
+      "independent_longest_concurrent_hours": 0.0,
+      "independent_concurrent_hours": 0.0
+    },
+    {
+      "site": {
+        "latitude_deg": -89,
+        "longitude_deg": 0
+      },
+      "date": "2026-11-19",
+      "source": "LOLA_MULTIRESOLUTION_20_240M",
+      "height_km": -0.3845,
+      "metrics": {
+        "concurrent_windows": [
+          {
+            "start_utc": "2026-11-19T00:00:00Z",
+            "end_utc": "2026-11-20T00:00:00Z",
+            "duration_hours": 24.0
+          }
+        ],
+        "longest_concurrent_hours": 24.0,
+        "sunlit_fraction": 1.0,
+        "earth_visible_fraction": 1.0,
+        "concurrent_fraction": 1.0,
+        "longest_darkness_hours": 0.0,
+        "longest_earth_blackout_hours": 0.0,
+        "sunlit_windows": [
+          {
+            "start_utc": "2026-11-19T00:00:00Z",
+            "end_utc": "2026-11-20T00:00:00Z",
+            "duration_hours": 24.0
+          }
+        ],
+        "earth_visible_windows": [
+          {
+            "start_utc": "2026-11-19T00:00:00Z",
+            "end_utc": "2026-11-20T00:00:00Z",
+            "duration_hours": 24.0
+          }
+        ],
+        "constraints_met": true
+      },
+      "bodies": {
+        "sun": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 4.848349148822706e-07,
+          "elevation_range_deg": [
+            1.958515,
+            2.130997
+          ],
+          "terrain_horizon_range_deg": [
+            1.513587522110703,
+            1.7753067871425896
+          ],
+          "best_margin_deg": 0.4922673805209108,
+          "independent_visible_hours": 24.0,
+          "independent_horizon_match": true
+        },
+        "earth": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 2.4673222822624297e-05,
+          "elevation_range_deg": [
+            2.827879,
+            4.110681
+          ],
+          "terrain_horizon_range_deg": [
+            2.24301406202829,
+            2.246937891115029
+          ],
+          "best_margin_deg": 1.8637431088849707,
+          "independent_visible_hours": 24.0,
+          "independent_horizon_match": true
+        }
+      },
+      "independent_longest_concurrent_hours": 24.0,
+      "independent_concurrent_hours": 24.0
+    },
+    {
+      "site": {
+        "latitude_deg": -85.98,
+        "longitude_deg": -1.67
+      },
+      "date": "2026-11-15",
+      "source": "LOLA_LDEM_75S_240M_PDS",
+      "height_km": 4.9185,
+      "metrics": {
+        "concurrent_windows": [
+          {
+            "start_utc": "2026-11-15T00:00:00Z",
+            "end_utc": "2026-11-15T19:00:00Z",
+            "duration_hours": 19.0
+          }
+        ],
+        "longest_concurrent_hours": 19.0,
+        "sunlit_fraction": 0.7916666666666666,
+        "earth_visible_fraction": 1.0,
+        "concurrent_fraction": 0.7916666666666666,
+        "longest_darkness_hours": 5.0,
+        "longest_earth_blackout_hours": 0.0,
+        "sunlit_windows": [
+          {
+            "start_utc": "2026-11-15T00:00:00Z",
+            "end_utc": "2026-11-15T19:00:00Z",
+            "duration_hours": 19.0
+          }
+        ],
+        "earth_visible_windows": [
+          {
+            "start_utc": "2026-11-15T00:00:00Z",
+            "end_utc": "2026-11-16T00:00:00Z",
+            "duration_hours": 24.0
+          }
+        ],
+        "constraints_met": true
+      },
+      "bodies": {
+        "sun": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 4.398910910807796e-07,
+          "elevation_range_deg": [
+            -0.214205,
+            0.550758
+          ],
+          "terrain_horizon_range_deg": [
+            -0.9541254888171523,
+            0.7846079947617797
+          ],
+          "best_margin_deg": 0.9337784887620761,
+          "independent_visible_hours": 19.0,
+          "independent_horizon_match": true
+        },
+        "earth": {
+          "fresh_horizons_max_error_deg": 0.0,
+          "spice_max_error_deg": 2.3213275906153186e-05,
+          "elevation_range_deg": [
+            0.465418,
+            1.650734
+          ],
+          "terrain_horizon_range_deg": [
+            -3.473185809292981,
+            -3.3588979194036903
+          ],
+          "best_margin_deg": 5.123919809292981,
+          "independent_visible_hours": 24.0,
+          "independent_horizon_match": true
+        }
+      },
+      "independent_longest_concurrent_hours": 19.0,
+      "independent_concurrent_hours": 19.0
+    }
+  ]
+}

@@ -1,11 +1,9 @@
+import VisibilityVisuals from '../../VisibilityVisuals'
 import {
   AlertTriangle,
   CheckCircle,
-  Clock,
-  Globe,
   Loader,
   Search,
-  Sun,
   XCircle,
 } from 'lucide-react'
 import type { Option, ResultsPanelProps, Window } from './types'
@@ -34,10 +32,6 @@ function formatCoordinate(value: number): string {
 function siteName(option: Option): string {
   const label = option.site.label?.trim()
   return label || `${formatCoordinate(option.site.latitude_deg)}°, ${formatCoordinate(option.site.longitude_deg)}°`
-}
-
-function formatPercent(fraction: number): string {
-  return Number.isFinite(fraction) ? `${(fraction * 100).toFixed(1)}%` : 'No disponible'
 }
 
 function formatHours(hours: number): string {
@@ -117,7 +111,7 @@ export function ResultsPanel({
         </p>
       )}
 
-      {!loading && !error && tiedMetrics.length > 0 && (
+      {!loading && !error && !noOptionMeetsConditions && tiedMetrics.length > 0 && (
         <p className="insights-summary">
           Hay métricas empatadas ({tiedMetrics.join(', ')}). Se conserva el orden proporcionado
           por el motor; no implica una puntuación adicional.
@@ -181,23 +175,7 @@ function OptionCard({
           </span>
         </button>
 
-        <dl className="insights-metrics">
-          <div className="insights-metric insights-metric--sun">
-            <dt><Sun size={14} aria-hidden="true" /> Sol visible</dt>
-            <dd>{formatPercent(metrics.sunlit_fraction)}</dd>
-            <span>Porcentaje del periodo</span>
-          </div>
-          <div className="insights-metric insights-metric--earth">
-            <dt><Globe size={14} aria-hidden="true" /> Tierra visible</dt>
-            <dd>{formatPercent(metrics.earth_visible_fraction)}</dd>
-            <span>Porcentaje del periodo</span>
-          </div>
-          <div className="insights-metric insights-metric--concurrent">
-            <dt><Clock size={14} aria-hidden="true" /> Ventana simultánea máxima</dt>
-            <dd>{formatHours(metrics.longest_concurrent_hours)}</dd>
-            <span>Duración continua, no acumulada</span>
-          </div>
-        </dl>
+        <VisibilityVisuals result={option.result} requiredHours={requiredHours}/>
 
         <div className={`insights-compliance${metrics.constraints_met ? ' insights-compliance--met' : ' insights-compliance--unmet'}`}>
           {metrics.constraints_met
@@ -212,6 +190,7 @@ function OptionCard({
           </span>
         </div>
 
+        <details className="visibility-raw"><summary>Detalle del calculo y ventanas</summary>
         {option.explanation.trim() && (
           <p className="insights-explanation">
             <strong>Explicación:</strong> {option.explanation}
@@ -235,6 +214,7 @@ function OptionCard({
         ) : (
           <p className="insights-no-windows">No se registraron ventanas simultáneas.</p>
         )}
+        </details>
       </article>
     </li>
   )

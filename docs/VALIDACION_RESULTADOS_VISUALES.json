@@ -1,0 +1,13 @@
+{
+  "source": "real NASA-backed API; no provider or result mocking, cache allowed",
+  "options": 3,
+  "zero_case_reason_matches_sample_data": true,
+  "positive_control_hours": 19,
+  "samples_per_body": 24,
+  "clearance_charts": 6,
+  "timeline_tracks": 9,
+  "selection_opens_map": true,
+  "mobile_width": 390,
+  "overflow": false,
+  "errors": []
+}
