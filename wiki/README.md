@@ -14,6 +14,7 @@ Proyecto principal: [thallesado/SpaceAppsChallenge](https://github.com/thallesad
 | Consultas Gemini, puntos nuevos, búsqueda mensual y límites orbitales | [Consultas personalizadas](13-consultas-generativas.md) |
 | Integración de Elkin, Blender, Moon Trek y ciencia | [Datos reales e integración](12-integracion-datos-reales.md) |
 | Instrucciones de mantenimiento para agentes | [AGENTS.md](../AGENTS.md) |
+| Entender de un vistazo la explicación visual de Datos y método | [Diagramas y ejemplo interactivo](16-explicacion-visual-del-metodo.md) |
 
 **Decisiones vigentes:** Blender como visor 3D y Moon Trek como mapa complementario; coordenadas personalizadas y candidatos generados; Gemini interpreta y NASA calcula; sin métricas ficticias. Las recomendaciones comparan candidatos y fechas muestreados, no certifican seguridad de alunizaje. Las peticiones orbitales requieren otra capacidad científica y no se convierten silenciosamente en análisis de superficie.
 

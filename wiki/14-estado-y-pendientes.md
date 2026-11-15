@@ -7,6 +7,7 @@ Actualizado el 15 de noviembre de 2026. Corte funcional: `b551128`; complementa 
 | Área | Comportamiento actual | Módulos principales |
 | --- | --- | --- |
 | Interfaz | Selección, coordenadas manuales, análisis, comparación, resultados y fuentes en español. Sin métricas de reserva cuando falla la API. | `frontend/src/App.tsx`, `plannerApi.ts`, `features/insights/` |
+| Explicación visual | «Datos y método» comienza con tres diagramas: coordenada/fecha, posiciones frente al relieve y ventanas simultáneas. Ejemplo interactivo de Sol oculto/visible, rotulado como ilustración. | `MethodExplainer.tsx`, `method-explainer.css`; ver [detalle y evidencia](16-explicacion-visual-del-metodo.md) |
 | Globo | Luna Blender GLB, direcciones reales de Sol/Tierra y modelos de esos cuerpos; distancias/tamaños visuales simbólicos. | `frontend/src/MoonScene.tsx`, `frontend/public/luna/`, `sol/`, `tierra/` |
 | Mapa | Moon Trek polar, NAC/LOLA, paneo, escala, cursor, zoom, selección y marcadores de consultas. Imágenes de archivo, no sombras de la fecha. | `SurfaceMap.tsx`, `LocalTileMap.tsx`, `moontrek.ts`, `polar.ts` |
 | Efemérides | NASA/JPL Horizons para Sol y Tierra, caché SQLite con coordenadas exactas, intervalos validados. | `backend/app/horizons.py`, `cache.py`, `main.py` |
