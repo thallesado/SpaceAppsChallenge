@@ -1,0 +1,190 @@
+{
+  "gemini": "real",
+  "generated_points_search": "real NASA with cache allowed",
+  "monthly_execution": "Real NASA-backed engine; cached ephemerides allowed",
+  "cases": [
+    {
+      "case": "generated",
+      "plan": {
+        "start_date": "2026-11-15",
+        "duration_days": 1,
+        "search_days": 0,
+        "site_ids": [],
+        "coordinates": [],
+        "constraints": {
+          "min_concurrent_hours": 0.0,
+          "min_sunlit_fraction": 0.0,
+          "min_earth_visible_fraction": 0.0,
+          "max_darkness_hours": null,
+          "max_earth_blackout_hours": null,
+          "min_earth_elevation_deg": 0.0
+        },
+        "assumptions": [],
+        "clarification": null,
+        "region": {
+          "center": {
+            "latitude_deg": -89.0,
+            "longitude_deg": 0.0,
+            "height_km": 0.0,
+            "label": null
+          },
+          "radius_km": 20.0,
+          "count": 3
+        },
+        "top_k": 2,
+        "result_mode": "alternatives",
+        "alternative_query": null
+      },
+      "points": [
+        {
+          "latitude_deg": -89.0,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · centro"
+        },
+        {
+          "latitude_deg": -88.34044227566386,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · candidato 2"
+        },
+        {
+          "latitude_deg": -89.65955772433631,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · candidato 3"
+        }
+      ],
+      "scope": "Solo estos candidatos y fechas; no un óptimo global.",
+      "verification": {
+        "evaluated": 3,
+        "shown": 2
+      }
+    },
+    {
+      "case": "month",
+      "plan": {
+        "start_date": "2026-11-01",
+        "duration_days": 1,
+        "search_days": 29,
+        "site_ids": [],
+        "coordinates": [],
+        "constraints": {
+          "min_concurrent_hours": 6.0,
+          "min_sunlit_fraction": 0.4,
+          "min_earth_visible_fraction": 0.4,
+          "max_darkness_hours": null,
+          "max_earth_blackout_hours": null,
+          "min_earth_elevation_deg": 0.0
+        },
+        "assumptions": [
+          "Se asume un umbral de 6 horas simultáneas para luz solar y visibilidad terrestre.",
+          "Se asume una fracción mínima de 0.4 para luz solar y visibilidad terrestre.",
+          "Muestreo limitado a 3 puntos generados automáticamente en la región especificada."
+        ],
+        "clarification": null,
+        "region": {
+          "center": {
+            "latitude_deg": -89.0,
+            "longitude_deg": 0.0,
+            "height_km": 0.0,
+            "label": null
+          },
+          "radius_km": 20.0,
+          "count": 3
+        },
+        "top_k": 2,
+        "result_mode": "dates",
+        "alternative_query": null
+      },
+      "points": [
+        {
+          "latitude_deg": -89.0,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · centro"
+        },
+        {
+          "latitude_deg": -88.34044227566386,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · candidato 2"
+        },
+        {
+          "latitude_deg": -89.65955772433631,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · candidato 3"
+        }
+      ],
+      "scope": "Solo estos candidatos y fechas; no un óptimo global."
+    },
+    {
+      "case": "orbit",
+      "plan": {
+        "start_date": "2026-11-01",
+        "duration_days": 1,
+        "search_days": 29,
+        "site_ids": [],
+        "coordinates": [],
+        "constraints": {
+          "min_concurrent_hours": 6.0,
+          "min_sunlit_fraction": 0.4,
+          "min_earth_visible_fraction": 0.4,
+          "max_darkness_hours": null,
+          "max_earth_blackout_hours": null,
+          "min_earth_elevation_deg": 0.0
+        },
+        "assumptions": [
+          "Se requiere aclaración sobre la órbita, ya que no se realizan cálculos de trayectoria, lanzamiento o transferencia.",
+          "Se asume un umbral de 6 horas simultáneas para luz solar y visibilidad terrestre.",
+          "Se asume una fracción mínima de 0.4 para luz solar y visibilidad terrestre."
+        ],
+        "clarification": "No es posible calcular trayectorias de lanzamiento o transferencia orbital. Puedo evaluar condiciones de iluminación y visibilidad terrestre en la superficie del polo sur si desea explorar sitios específicos o una región.",
+        "region": null,
+        "top_k": 2,
+        "result_mode": "dates",
+        "alternative_query": "Evaluar condiciones de superficie en el polo sur (centro -89,0, radio 20 km, 9 puntos) durante noviembre de 2026."
+      },
+      "points": [],
+      "scope": "Solo estos candidatos y fechas; no un óptimo global."
+    }
+  ],
+  "monthly_result": {
+    "evaluated": 90,
+    "requested": 90,
+    "unavailable": [],
+    "options": [
+      {
+        "site": {
+          "latitude_deg": -89.0,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · centro"
+        },
+        "start": "2026-11-19T00:00:00Z",
+        "constraints_met": true,
+        "window": {
+          "start_utc": "2026-11-19T00:00:00Z",
+          "end_utc": "2026-11-20T00:00:00Z",
+          "duration_hours": 24.0
+        }
+      },
+      {
+        "site": {
+          "latitude_deg": -89.0,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Exploración · centro"
+        },
+        "start": "2026-11-20T00:00:00Z",
+        "constraints_met": true,
+        "window": {
+          "start_utc": "2026-11-20T00:00:00Z",
+          "end_utc": "2026-11-21T00:00:00Z",
+          "duration_hours": 24.0
+        }
+      }
+    ]
+  }
+}

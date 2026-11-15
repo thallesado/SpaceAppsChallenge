@@ -91,14 +91,14 @@ export default function App() {
   }
   function applyAssistant(data: AssistantResult) {
     operation.current++; setBusy(''); setError(''); setPlaying(false)
-    setAssistantPoints(data.points); setAssistantAnswer(`${data.answer} ${data.scope}`)
+    setAssistantPoints(data.points); setAssistantAnswer(`${data.answer} ${data.evaluated_count ?? data.options.length} alternativas evaluadas; ${data.options.length} mostradas. ${data.scope}`)
     setOptions(data.options); setUnavailable((data.unavailable || []).map(u => `${u.site.label || 'Punto'}: ${u.detail}`))
     setResultsRequired(data.plan.constraints.min_concurrent_hours)
     setDate(data.plan.start_date); setDays(data.plan.duration_days); setStep(60)
     setRequired(data.plan.constraints.min_concurrent_hours); setMinSun(data.plan.constraints.min_sunlit_fraction*100)
     setMinEarth(data.plan.constraints.min_earth_visible_fraction*100)
-    setCustomPoints(data.points); setChecked([]); setResult(null); setHour(0)
-    setSearchDates(data.plan.search_days > 0); setLookAhead(data.plan.search_days)
+    setCustomPoints(data.points.slice(0,3)); setChecked([]); setResult(null); setHour(0)
+    setSearchDates(data.plan.search_days > 0); setLookAhead(Math.min(7,data.plan.search_days))
     if (data.points[0]) setSelected(data.points[0])
     setTab('compare')
   }

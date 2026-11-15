@@ -30,7 +30,7 @@ def test_missing_key_is_explicit_and_does_not_return_results(monkeypatch):
 
 @pytest.mark.parametrize('updates', [
     {'site_ids': ['invented']}, {'coordinates': [{'latitude_deg': 0, 'longitude_deg': 0}]},
-    {'duration_days': 14, 'search_days': 1}, {'site_ids': []},
+    {'search_days': 31}, {'site_ids': []},
     {'site_ids': ['mouton', 'malapert'], 'coordinates': [
         {'latitude_deg': -89, 'longitude_deg': 0}, {'latitude_deg': -89, 'longitude_deg': 1}]},
 ])
@@ -105,3 +105,42 @@ def test_search_executes_engine_not_model_and_preserves_constraints(monkeypatch)
         assert data['options'][0]['result']['scenario']['constraints']['min_concurrent_hours'] == 6
         assert data['options'][0]['recommended_window']['duration_hours'] == 24
         assert client.post('/api/v1/assistant/search', json=plan(clarification='¿Qué fecha?')).status_code == 422
+
+
+def test_region_generates_new_geodesic_coordinates_not_catalog():
+    value = SearchPlan(**plan(site_ids=[], region={'center': {'latitude_deg': -89, 'longitude_deg': 0},
+                                                  'radius_km': 20, 'count': 9}))
+    points = value.points()
+    assert len(points) == 9
+    assert len({(p.latitude_deg, p.longitude_deg) for p in points}) == 9
+    assert all(-90 <= p.latitude_deg <= -75 for p in points)
+    assert all(p.label.startswith('Exploración') for p in points)
+
+
+def test_monthly_search_evaluates_all_days_and_selects_distinct_dates(monkeypatch):
+    from types import SimpleNamespace
+    seen = []
+    async def scientific_batch(payload, request):
+        assert len(payload.sites) <= 3
+        assert (payload.scenario.end_utc - payload.scenario.start_utc).days + payload.search_days <= 14
+        rows = []
+        for offset in range(payload.search_days + 1):
+            for site in payload.sites:
+                start = payload.scenario.start_utc + timedelta(days=offset)
+                seen.append((start.date(), site.latitude_deg, site.longitude_deg))
+                result = SimpleNamespace(scenario=payload.scenario.model_copy(update={'start_utc': start}),
+                    metrics=SimpleNamespace(constraints_met=True, longest_concurrent_hours=start.day,
+                                            concurrent_fraction=.5))
+                rows.append({'site': site, 'offset_days': offset, 'result': result, 'recommended_window': None})
+        return {'options': rows, 'unavailable': []}
+    monkeypatch.setattr('app.generative.search', scientific_batch)
+    with TestClient(app) as client:
+        response = client.post('/api/v1/assistant/search', json=plan(start_date='2026-11-01', search_days=29,
+            site_ids=[], region={'center': {'latitude_deg': -89, 'longitude_deg': 0}, 'count': 9},
+            top_k=2, result_mode='dates'))
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert data['evaluated_count'] == data['requested_count'] == len(seen) == 270
+        assert len(set(seen)) == 270
+        assert len(data['options']) == 2
+        assert [o['result']['scenario']['start_utc'][:10] for o in data['options']] == ['2026-11-30', '2026-11-29']

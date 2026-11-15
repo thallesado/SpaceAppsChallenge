@@ -8,7 +8,9 @@ const installed=existsSync(root) ? readdirSync(root).filter(n=>/^chromium-/.test
 mkdirSync('artifacts',{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || installed,args:['--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:1440,height:1100}});
-const live=process.argv.includes('--live');
+const generated=process.argv.includes('--generated');
+const live=process.argv.includes('--live') || generated;
+const expectedPoints=generated ? 3 : 2, expectedOptions=generated ? 2 : 6;
 const errors=[]; page.on('pageerror',e=>errors.push(e.message));
 let scientificRequests=0;
 page.on('request',r=>{if(r.url().includes('/assistant/search'))scientificRequests++});
@@ -20,13 +22,13 @@ if (!live) await page.route('**/api/v1/assistant/status',r=>r.fulfill({json:{con
 if (!live) await page.route('**/api/v1/assistant/plan',r=>r.fulfill({json:{plan,points,scope:'Solo estos candidatos y fechas; no un óptimo global.'}}));
 try {
   await page.goto('http://127.0.0.1:5174',{waitUntil:'networkidle',timeout:180000});
-  await page.getByLabel('Sitios, fechas y condiciones que necesitas').fill('Compara Mons Mouton y Mons Malapert desde el 15 de noviembre de 2026, un dia por escenario, probando inicios ese dia y los dos siguientes. Necesito seis horas continuas de Sol y Tierra visibles, minimo 40% de luz y 40% de Tierra visible.');
+  await page.getByLabel('Sitios, fechas y condiciones que necesitas').fill(generated ? 'Genera 3 puntos nuevos alrededor de latitud -89, longitud 0 a 20 km. Analiza un dia desde el 15 de noviembre de 2026, sin otras fechas, minimo 0% luz, 0% Tierra, 0 horas continuas. Muestra dos opciones.' : 'Muestra seis alternativas. Compara Mons Mouton y Mons Malapert desde el 15 de noviembre de 2026, un dia por escenario, probando inicios ese dia y los dos siguientes. Necesito seis horas continuas de Sol y Tierra visibles, minimo 40% de luz y 40% de Tierra visible.');
   await page.getByRole('button',{name:'Preparar búsqueda',exact:true}).click();
-  await expect(page.locator('.assistant-points span')).toHaveCount(2,{timeout:120000});
-  await expect(page.locator('.assistant-plan')).toContainText('6 alternativas');
+  await expect(page.locator('.assistant-points span')).toHaveCount(expectedPoints,{timeout:120000});
+  await expect(page.locator('.assistant-plan')).toContainText(`${generated ? 3 : 6} alternativas`);
   await page.getByRole('button',{name:'Buscar opciones con datos NASA',exact:true}).click();
   await expect(page.locator('.assistant-answer')).toContainText('Horizons y LOLA',{timeout:180000});
-  await expect(page.getByRole('button',{name:/Seleccionar alternativa [0-9]+:/})).toHaveCount(6);
+  await expect(page.getByRole('button',{name:/Seleccionar alternativa [0-9]+:/})).toHaveCount(expectedOptions);
   await page.getByRole('button',{name:/Seleccionar alternativa [0-9]+:/}).first().click();
   await expect(page.getByText('TU VENTANA EN DETALLE',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Mapa NASA',exact:true}).click();
@@ -35,7 +37,7 @@ try {
   await page.setViewportSize({width:390,height:844});
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
   if(overflow || errors.length || scientificRequests!==1)throw new Error(JSON.stringify({overflow,errors,scientificRequests}));
-  const report={gemini:live ? 'live authenticated Gemini interpretation' : 'simulated structured interpretation; no live key used',search:'running backend, Horizons and LOLA; cache allowed',alternatives:6,scientificRequests,overflow,errors};
-  writeFileSync(live ? '../docs/VALIDACION_ASISTENTE_NAVEGADOR_REAL.json' : 'artifacts/assistant-validation.json',JSON.stringify(report,null,2));
+  const report={gemini:live ? 'live authenticated Gemini interpretation' : 'simulated structured interpretation; no live key used',search:'running backend, Horizons and LOLA; cache allowed',alternatives:expectedOptions,scientificRequests,overflow,errors};
+  writeFileSync(generated ? '../docs/VALIDACION_PUNTOS_NAVEGADOR_REAL.json' : live ? '../docs/VALIDACION_ASISTENTE_NAVEGADOR_REAL.json' : 'artifacts/assistant-validation.json',JSON.stringify(report,null,2));
   console.log(JSON.stringify(report,null,2));
 } finally {await browser.close()}

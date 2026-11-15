@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta, timezone
 import json
 import os
 import re
+from typing import Literal
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
@@ -11,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from .catalog import find_site, list_sites
 from .models import Constraints, Scenario, Site
 from .planner import SearchRequest, search
+from .terrain import _destination
 
 router = APIRouter(prefix='/api/v1/assistant', tags=['Generative search'])
 
@@ -20,32 +22,58 @@ class Candidate(Site):
     model_config = ConfigDict(extra='forbid')
 
 
+class ExplorationRegion(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    center: Candidate
+    radius_km: float = Field(default=20, ge=1, le=100)
+    count: Literal[3, 9] = 9
+
+    def points(self):
+        points = [self.center.model_copy(update={'label': 'Exploración · centro'})]
+        for i in range(self.count - 1):
+            lat, lon = _destination(self.center.latitude_deg, self.center.longitude_deg,
+                                    i * 360 / (self.count - 1), self.radius_km * 1000)
+            points.append(Candidate(latitude_deg=lat, longitude_deg=((lon + 180) % 360) - 180,
+                                    label=f'Exploración · candidato {i + 2}'))
+        return points
+
+
 class SearchPlan(BaseModel):
     model_config = ConfigDict(extra='forbid')
     start_date: date
     duration_days: int = Field(ge=1, le=14)
-    search_days: int = Field(ge=0, le=7, description='Additional consecutive start days')
+    search_days: int = Field(ge=0, le=30, description='Additional consecutive start days; 29 for all 30 days of November')
     site_ids: list[str] = Field(default_factory=list, max_length=3)
     coordinates: list[Candidate] = Field(default_factory=list, max_length=3)
     constraints: Constraints
     assumptions: list[str] = Field(default_factory=list, max_length=8)
     clarification: str | None = Field(default=None, max_length=500)
+    region: ExplorationRegion | None = None
+    top_k: int = Field(default=10, ge=1, le=10)
+    result_mode: Literal['alternatives', 'dates'] = 'alternatives'
+    alternative_query: str | None = Field(default=None, max_length=1000)
 
     @model_validator(mode='after')
     def bounded_search(self):
-        if self.duration_days + self.search_days > 14:
-            raise ValueError('The complete search must fit within 14 days')
+        if self.region and (self.site_ids or self.coordinates):
+            raise ValueError('Choose region exploration or explicit points')
         if len(self.site_ids) + len(self.coordinates) > 3:
             raise ValueError('At most three candidate points')
         if len(set(self.site_ids)) != len(self.site_ids):
             raise ValueError('Duplicate sites')
         if any(find_site(key) is None for key in self.site_ids):
             raise ValueError('Unknown catalog site')
-        if not self.clarification and not (self.site_ids or self.coordinates):
+        if self.region:
+            self.region.points()  # Reject regions crossing DEM latitude coverage.
+        if not self.clarification and not (self.site_ids or self.coordinates or self.region):
             raise ValueError('A search needs at least one point')
         return self
 
     def points(self):
+        if self.clarification:
+            return []
+        if self.region:
+            return self.region.points()
         catalog = [find_site(key) for key in self.site_ids]
         return [Site(latitude_deg=s.latitude_deg, longitude_deg=s.longitude_deg, label=s.name) for s in catalog] + list(self.coordinates)
 
@@ -77,11 +105,22 @@ async def interpret(question: Question) -> SearchPlan:
         'El motor evalúa luz solar y línea de vista a Tierra sobre terreno. No evalúa trayectoria, '
         'temperatura, hielo, combustible ni capacidad del enlace. Si una condición decisiva no se soporta, '
         'o falta una fecha/región imprescindible, devuelve clarification y no simules resolverla. '
-        'Usa exclusivamente IDs del catálogo o coordenadas expresamente aportadas por el usuario/contexto. '
-        'No inventes coordenadas de accidentes lunares. Para una búsqueda general elige hasta tres sitios '
-        'del catálogo, declara la selección en assumptions. Mejor significa solo entre esos candidatos y fechas. '
-        'Máximo tres puntos y 14 días de intervalo total (duration_days + search_days), search_days máximo 7. '
-        'No acortes una petición mayor: solicita precisión mediante clarification y un plan acotado sin ejecutar. '
+        'Para coordenadas dadas usa coordinates y para nombres conocidos site_ids. '
+        'Para buscar nuevos puntos o una búsqueda general usa region: el servidor genera candidatos geométricos '
+        'alrededor de center con radius_km y count 3 o 9; no elijas un sitio del catálogo por defecto. '
+        'Si pide polo sur sin más límites, propón center (-89,0), radio 20 km y 9 puntos; declara ese muestreo '
+        'limitado en assumptions. Para alrededores del punto actual puedes usarlo como centro. '
+        'Los puntos generados NO son sitios óptimos hasta evaluarlos con NASA. '
+        'No inventes coordenadas de accidentes lunares. No mezcles region con site_ids/coordinates. '
+        'Hasta 31 fechas consecutivas de inicio: para noviembre completo start_date YYYY-11-01 y search_days 29. '
+        'Si pide más de 31 fechas, solicita precisión con clarification; no recortes el periodo en silencio. '
+        'duration_days es duración por escenario, no duración del barrido mensual. Máximo 14 días por escenario. '
+        'Si solicita N mejores opciones, top_k=N; si pide momentos/fechas, result_mode=dates para fechas distintas. '
+        'Peticiones de órbita, lanzamiento o transferencia requieren clarification: explica que faltan cálculos '
+        'orbitales, NO prepares en su lugar Mons Mouton ni afirme que se evaluó un mes. Puedes ofrecer '
+        'alternative_query como otra consulta explícita de condiciones en superficie, que el usuario podrá aceptar. '
+        'Cuando haya clarification devuelve site_ids=[], coordinates=[], region=null y assumptions=[]; '
+        'no describas una búsqueda diferente como si fuera la solicitud. '
         'Fechas relativas respecto a reference_date. Si no indica duración, usa 1 día; si no indica barrido, '
         'usa 3 días adicionales. Umbrales omitidos: 6 h simultáneas y fracciones mínimas 0.4, '
         'declara esos supuestos. Fracciones en [0,1]. No modifiques filtros para conseguir éxito. '
@@ -130,7 +169,34 @@ async def execute(payload: SearchPlan, request: Request):
     scenario = Scenario(site=points[0], start_utc=start,
         end_utc=start + timedelta(days=payload.duration_days), step_minutes=60,
         use_dem_horizon=True, max_horizon_distance_km=250, constraints=payload.constraints)
-    result = await search(SearchRequest(scenario=scenario, sites=points, search_days=payload.search_days), request)
+    rows, unavailable = [], []
+    # Keep existing engine contracts: <=3 points and <=14 days per batch.
+    batch_days = min(8, 15 - payload.duration_days)
+    for first_day in range(0, payload.search_days + 1, batch_days):
+        extra = min(batch_days - 1, payload.search_days - first_day)
+        batch_scenario = scenario.model_copy(update={
+            'start_utc': scenario.start_utc + timedelta(days=first_day),
+            'end_utc': scenario.end_utc + timedelta(days=first_day)})
+        for first_site in range(0, len(points), 3):
+            batch = await search(SearchRequest(scenario=batch_scenario, sites=points[first_site:first_site+3], search_days=extra), request)
+            for row in batch['options']:
+                row['offset_days'] += first_day
+            rows.extend(batch['options']); unavailable.extend(batch['unavailable'])
+    rows.sort(key=lambda r: (r['result'].metrics.constraints_met, r['result'].metrics.longest_concurrent_hours,
+                            r['result'].metrics.concurrent_fraction), reverse=True)
+    selected = []
+    dates = set()
+    for row in rows:
+        day = row['result'].scenario.start_utc.date()
+        if payload.result_mode == 'dates' and day in dates:
+            continue
+        selected.append(row); dates.add(day)
+        if len(selected) >= payload.top_k:
+            break
+    result = {'options': selected, 'unavailable': unavailable,
+              'any_feasible': any(row['result'].metrics.constraints_met for row in rows),
+              'evaluated_count': len(rows), 'requested_count': len(points)*(payload.search_days+1),
+              'criterion': 'Cumplimiento, ventana simultánea continua y fracción simultánea'}
     return {**result, 'plan': payload, 'points': points,
             'answer': ('Se encontraron alternativas que cumplen los filtros.' if result['any_feasible'] else
                        'No se encontraron alternativas que cumplan todos los filtros.' if result['options'] else

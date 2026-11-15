@@ -6,10 +6,10 @@ import type { Point, SearchResult } from './plannerApi'
 type Plan = {
   start_date: string; duration_days: number; search_days: number; site_ids: string[]; coordinates: Point[]
   constraints: { min_concurrent_hours: number; min_sunlit_fraction: number; min_earth_visible_fraction: number; max_darkness_hours?: number | null; max_earth_blackout_hours?: number | null; min_earth_elevation_deg: number }
-  assumptions: string[]; clarification: string | null
+  assumptions: string[]; clarification: string | null; top_k?: number; alternative_query?: string | null; region?: {radius_km:number;count:number} | null
 }
 type Prepared = {plan: Plan; points: Point[]; scope: string}
-export type AssistantResult = SearchResult & Prepared & {answer: string}
+export type AssistantResult = SearchResult & Prepared & {answer: string; evaluated_count?: number; requested_count?: number}
 
 export default function AssistantSearch({ date, selected, disabled, onPoints, onResult }: {
   date: string; selected: Point | null; disabled: boolean
@@ -47,7 +47,7 @@ export default function AssistantSearch({ date, selected, disabled, onPoints, on
     {configured === false && <p role="status">Gemini pendiente de configuración en el servidor. Las búsquedas manuales siguen disponibles.</p>}
     {busy && <p role="status">{busy}…</p>}{error && <p role="alert">{error}</p>}
     {prepared && <div className="assistant-plan"><h3>{prepared.plan.clarification ? 'Necesito precisar tu consulta' : 'Tu búsqueda'}</h3>
-      {prepared.plan.clarification ? <p>{prepared.plan.clarification}</p> : <>
+      {prepared.plan.clarification ? <><p>{prepared.plan.clarification}</p>{prepared.plan.alternative_query && <button className="nav-secondary" onClick={() => change(prepared.plan.alternative_query!)}>Usar consulta de superficie propuesta</button>}</> : <>
         <div className="assistant-points">{prepared.points.map((p,i) => <span key={i}><b>{i+1}. {p.label || 'Coordenada'}</b> {p.latitude_deg.toFixed(4)}°, {p.longitude_deg.toFixed(4)}°</span>)}</div>
         <p>Inicio {prepared.plan.start_date} UTC · {prepared.plan.duration_days} día(s) por escenario · {prepared.points.length*(prepared.plan.search_days+1)} alternativas.</p>
         <p>Mínimos: {prepared.plan.constraints.min_concurrent_hours} h continuas · luz {(prepared.plan.constraints.min_sunlit_fraction*100).toFixed(0)}% · Tierra {(prepared.plan.constraints.min_earth_visible_fraction*100).toFixed(0)}%.</p>
@@ -55,7 +55,7 @@ export default function AssistantSearch({ date, selected, disabled, onPoints, on
         {prepared.plan.constraints.max_earth_blackout_hours != null && <p>Sin Tierra visible: máximo {prepared.plan.constraints.max_earth_blackout_hours} h.</p>}
         {prepared.plan.constraints.min_earth_elevation_deg > 0 && <p>Elevación mínima de Tierra: {prepared.plan.constraints.min_earth_elevation_deg}°.</p>}
       </>}
-      {prepared.plan.assumptions.length > 0 && <ul>{prepared.plan.assumptions.map((a,i) => <li key={i}>{a}</li>)}</ul>}
+      {!prepared.plan.clarification && prepared.plan.assumptions.length > 0 && <ul>{prepared.plan.assumptions.map((a,i) => <li key={i}>{a}</li>)}</ul>}
       {!prepared.plan.clarification && <><small>{prepared.scope} Ajusta el texto para cambiar las condiciones.</small><button className="nav-primary" onClick={execute} disabled={disabled || !!busy}>Buscar opciones con datos NASA</button></>}
     </div>}
   </section>

@@ -1,0 +1,8 @@
+{
+  "gemini": "live authenticated Gemini interpretation",
+  "search": "running backend, Horizons and LOLA; cache allowed",
+  "alternatives": 2,
+  "scientificRequests": 1,
+  "overflow": false,
+  "errors": []
+}
