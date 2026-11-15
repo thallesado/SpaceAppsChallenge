@@ -1,64 +1,27 @@
-# LunarPath AI — Frontend
+# LunarPath — Frontend
 
-> La aplicación principal ahora es el explorador lunar 3D conectado a `/api/v1`: usa Moon Trek, Horizons y LOLA. La interfaz anterior descrita más abajo se conserva en `src/LegacyApp.tsx`. Instrucciones actuales, límites y verificación: [integración 3D](../docs/INTEGRACION_EXPLORADOR_3D.md).
-
-Interfaz React + TypeScript + Vite para explorar sitios del polo sur lunar, recorrer una línea temporal de visibilidad Sol/Tierra, comparar dos escenarios y evaluar restricciones básicas de misión.
+Interfaz React + TypeScript + Vite para explorar el polo sur lunar y comparar periodos de iluminación y visibilidad de la Tierra. La aplicación principal usa el backend `/api/v1`; la interfaz anterior se conserva en `src/LegacyApp.tsx`.
 
 ## Ejecutar
 
-```bash
+```powershell
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Abre la URL local que muestra Vite. Para compilar: `npm run build`.
+Para validar la compilación, ejecutar `npm run build`.
 
-## Datos y API
+## Visor 3D
 
-El repositorio incluye un backend FastAPI en `../backend`. El mapa y el relieve dibujado en la vista de horizonte siguen siendo **ilustraciones**; las métricas pueden venir de Horizons y LOLA cuando la API está activa. Las coordenadas de los puntos son muestras de interfaz, no ubicaciones de aterrizaje aprobadas.
+`src/MoonScene.tsx` carga el modelo Blender MOON_ME desde `public/luna/luna_cientifica.glb`. El GLB incluye texturas y se sirve desde el propio frontend: el visor no solicita teselas de Moon Trek durante la ejecución. El origen, los marcadores y los raycasts usan el mismo sistema MOON_ME (X: longitud 0°, Y: norte, Z: longitud este negativa en el marco Three.js).
 
-Por defecto se utiliza la demo. Para activar el backend, copia `.env.example` a `.env` y ejecuta el backend. El cliente consulta `POST /api/scenarios/analyze` para los dos sitios de la comparación, usa las métricas devueltas por FastAPI y pide horizonte LOLA. Si falla una consulta, muestra un aviso explícito y datos de demostración identificados como ilustrativos. En desarrollo, Vite redirige `/api` a `http://localhost:8000`. Para otro destino, configura `VITE_API_BASE_URL`.
+Se puede orbitar con arrastre, acercar con la rueda, seleccionar sitios del catálogo o introducir coordenadas. Mayús + clic permite marcar un punto personalizado sobre el modelo o sobre la malla local cuando está disponible. Las coordenadas seleccionadas siguen el flujo normal del análisis y se validan para la cobertura del polo sur.
 
-Solicitud esperada:
+El GLB es una visualización; sus texturas y relieve no sustituyen al DEM LOLA usado por el backend para mallas, perfiles de horizonte y métricas. Las direcciones del Sol y la Tierra provienen del resultado de Horizons y se actualizan con el control temporal. El visor no calcula por sí mismo visibilidad científica ni seguridad de aterrizaje.
 
-```json
-{
-  "latitude": -85.4,
-  "longitude": -29.2,
-  "start_time": "2026-11-15T00:00:00Z",
-  "hours": 168,
-  "step_minutes": 60,
-  "use_dem_horizon": true
-}
-```
+## Integración con el backend
 
-Respuesta esperada:
+En desarrollo, Vite reenvía `/api` a `http://127.0.0.1:8000`. Configura `VITE_API_BASE_URL` para otro servidor. La aplicación usa `/api/v1` para cargar el catálogo y estado, consultar la malla LOLA local, calcular el horizonte, analizar un escenario y comparar alternativas. Los errores se presentan en la interfaz; no se reemplazan por datos de demostración.
 
-```json
-{
-  "samples": [
-    {
-      "hour": 0,
-      "sun_elevation": 2.1,
-      "earth_elevation": 4.7,
-      "horizon_sun": 1.8,
-      "horizon_earth": 2.2,
-      "sun_visible": true,
-      "earth_visible": true
-    }
-  ]
-}
-```
-
-Se esperan al menos dos muestras horarias y métricas del backend. La API proporciona efemérides y horizonte topográfico; el frontend no los calcula. La vista de horizonte sigue siendo una ilustración visual, incluso cuando las métricas provienen de la API.
-
-## Alcance actual
-
-- Selección entre cuatro regiones de muestra y fecha UTC.
-- Visibilidad solar y terrestre, intervalos de oscuridad y blackout, gráfico temporal y control de hora.
-- Modo Analyst con umbrales ajustables.
-- Comparación de dos sitios y exportación CSV del escenario principal.
-- Diseño adaptable para escritorio y móvil.
-
-El mapa científico con proyección polar, datos LOLA/LRO, vista 3D y copiloto IA requieren los servicios y datasets del plan original; no se presentan como funciones científicas de esta versión.
+Consulta [`../docs/INTEGRACION_EXPLORADOR_3D.md`](../docs/INTEGRACION_EXPLORADOR_3D.md) para contratos, pasos de arranque, fuentes y límites científicos.

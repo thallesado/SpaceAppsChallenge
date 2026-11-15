@@ -2,7 +2,7 @@
 
 ## Qué se reutilizó
 
-La base local se actualizó a `506f881` de `main`. Se conservaron el motor temporal, lectura PDS LOLA, catálogo, caché SQLite, exportación y módulos existentes de ranking, energía y diagnóstico. Los adaptadores locales de Moon Trek y PGDA se incorporaron como rutas adicionales. El estado anterior permanece en el stash `local NASA adapters before integration` y en el parche externo `../lunar-local-backend.patch`.
+La base local se actualizó a `506f881` de `main`. Se conservaron el motor temporal, lectura PDS LOLA, catálogo, caché SQLite, exportación y módulos existentes de ranking, energía y diagnóstico. Los adaptadores locales de Moon Trek y PGDA se incorporaron como rutas adicionales. El globo ahora carga el modelo Blender MOON_ME incluido en `frontend/public/luna/luna_cientifica.glb`; el modelo y sus texturas se sirven desde el propio frontend, sin solicitar teselas Moon Trek al abrir el visor. El estado anterior permanece en el stash `local NASA adapters before integration` y en el parche externo `../lunar-local-backend.patch`.
 
 La interfaz anterior queda en `frontend/src/LegacyApp.tsx`. El explorador nuevo usa los contratos `/api/v1` directamente, sin depender de muestras ficticias ni del contrato legacy.
 
@@ -43,12 +43,13 @@ No se requiere clave NASA. El cliente nuevo siempre utiliza el backend; `VITE_US
 
 | Fuente | Integración |
 | --- | --- |
-| NASA Moon Trek / LRO WAC | 32 teselas WMTS del mosaico global al nivel 2, compuestas como textura; catálogo y capacidades consultables. |
+| Modelo Blender MOON_ME | GLB de `frontend/public/luna/luna_cientifica.glb`, con mapas de albedo, normales y roughness integrados; coordenadas del modelo compatibles con MOON_ME. |
+| NASA Moon Trek / LRO WAC | Fuente cartográfica incorporada en el asset visual; el visor actual no consulta teselas WMTS durante la ejecución. Las rutas backend de capas/teselas permanecen disponibles para otros usos. |
 | NASA/JPL Horizons | Azimut y elevación Sol/Tierra desde coordenadas lunares y altura del observador. |
 | NASA PDS LOLA LDEM_75S_240M | Malla local y perfil de horizonte con curvatura, resolución nominal de 240 m. |
 | NASA GSFC PGDA 78/90 | Descubrimiento de GeoTIFF oficiales y muestreo remoto de elevación en archivos LDEM compatibles. No sustituye silenciosamente el DEM PDS del análisis. |
 
-Es un visor Three.js propio alimentado por servicios Moon Trek; no es una copia incrustada del portal NASA. La textura global es de resolución limitada y no debe interpretarse como imagen de detalle del terreno local. El visor no calcula sombras locales por ray tracing: los estados de visibilidad proceden del horizonte del backend y se muestran numéricamente y en la línea temporal.
+El visor Three.js carga el modelo Blender MOON_ME localmente. Los puntos de catálogo y el sitio elegido se colocan sobre la superficie del GLB; Mayús + clic también permite seleccionar coordenadas personalizadas en el globo o en la malla local cuando está disponible. Las texturas y el relieve visual del modelo no son autoridad científica: el backend sigue usando Horizons y el DEM LOLA para las posiciones, métricas y perfil de horizonte. El visor no calcula sombras locales por ray tracing; los estados de visibilidad proceden del horizonte del backend y se muestran numéricamente y en la línea temporal.
 
 ## Contratos nuevos
 
@@ -90,7 +91,7 @@ Evidencia de esta integración:
 - 33 pruebas backend pasaron: motor existente, contratos, búsqueda entre fechas, restricciones, catálogo oficial, malla, fallos y lectura de DEM sintético.
 - Compilación TypeScript/Vite correcta. Advertencia de tamaño del bundle 3D; no es error de compilación.
 - Servicios reales: Horizons, WMTS, catálogos PGDA 78/90 y elevación remota; el script permite repetirlo.
-- Navegador Chromium con WebGL: 32 teselas cargadas, órbita, terreno local, análisis real, cursor temporal, seis alternativas, elección, fuentes, guía y móvil sin desbordamiento. En la consulta usada, tres alternativas cumplieron. Esto no es una propiedad general de esos sitios.
+- Navegador Chromium con WebGL: modelo Blender GLB local, órbita, selección de sitio y punto personalizado, terreno local, análisis real, cursor temporal, seis alternativas, elección, fuentes, guía y móvil sin desbordamiento. En la consulta usada, tres alternativas cumplieron. Esto no es una propiedad general de esos sitios.
 - Capturas en `frontend/artifacts/`.
 
 ## Límites

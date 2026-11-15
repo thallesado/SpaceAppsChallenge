@@ -163,7 +163,7 @@ export function GuidePanel({ open, onClose }: GuidePanelProps) {
 
           <section className="insights-guide-section">
             <h3><Globe size={16} aria-hidden="true" /> Fuentes de datos NASA</h3>
-            <p>JPL Horizons aporta posiciones del Sol y la Tierra; Moon Trek, cartografía; LOLA/PDS y PGDA, datos de elevación del terreno.</p>
+            <p>JPL Horizons aporta las posiciones del Sol y la Tierra. El visor usa el modelo Blender MOON_ME incluido en el repositorio, con cartografía incrustada; LOLA/PDS y PGDA aportan datos de terreno. El visor no solicita teselas Moon Trek durante la ejecución, y el modelo visual no sustituye al DEM utilizado en los cálculos.</p>
           </section>
 
           <section className="insights-guide-section">

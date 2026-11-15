@@ -19,15 +19,15 @@ La experiencia combinará la propuesta educativa y de exploración 3D del equipo
 | --- | --- | --- |
 | JPL Horizons | Efemérides topocéntricas del Sol y la Tierra | Integrado en FastAPI |
 | NASA PDS LOLA | Elevación y perfil topográfico del horizonte | DEM de 240 m/píxel integrado para análisis regional |
-| NASA Moon Trek | Cartografía georreferenciada y capas polares | Integración WMTS por verificar |
-| Blender | Luna y escenas 3D para exploración y explicación | Modelo del equipo por exportar e integrar; no es fuente de elevación científica |
+| NASA Moon Trek | Cartografía georreferenciada y capas polares | La cartografía está incorporada en el asset visual; el visor ya no consulta teselas en ejecución |
+| Blender | Luna y escenas 3D para exploración y explicación | GLB MOON_ME integrado en el visor; no es fuente de elevación científica |
 
 Horizons, LOLA y Moon Trek son recursos diferentes. El modelo de Blender es una representación visual. Los cálculos de visibilidad deben continuar usando efemérides y topografía georreferenciada.
 
 ## Estado comprobado en el repositorio
 
 - Backend FastAPI con contratos Pydantic, consulta a Horizons, caché SQLite, catálogo de sitios, horizonte LOLA, línea temporal, comparación, ranking, Mission Delta, energía preliminar, exportación CSV y explicaciones basadas en reglas.
-- Frontend React/TypeScript con pantallas de explorador y comparación, adaptador hacia `/api/scenarios/analyze` y modo de demostración. La integración completa y la Luna de Blender todavía deben verificarse en el recorrido real.
+- Frontend React/TypeScript con explorador conectado a `/api/v1`, selección por coordenadas, vista de terreno LOLA y modelo Blender MOON_ME integrado. La geometría del GLB es solo visual; los cálculos usan Horizons y topografía del backend.
 - Los resultados científicos actuales son estimaciones para planificación y educación. La visibilidad directa de la Tierra no certifica un enlace de radio, y la simulación eléctrica no certifica el sistema de energía.
 
 ## Contrato del producto
@@ -47,8 +47,8 @@ Horizons, LOLA y Moon Trek son recursos diferentes. El modelo de Blender es una 
 
 1. **Coherencia temporal y validación científica.** La exploración densa del periodo y los intervalos compartidos ya están implementados. Falta cuantificar la sensibilidad a pasos inferiores al elegido, contrastar más casos de referencia de Horizons y medir el efecto de la resolución del DEM.
 2. **Integración frontend–backend.** Unificar los contratos de escenario, sitio, muestras, métricas y errores; probar el recorrido sin depender de datos inventados.
-3. **Cartografía Moon Trek.** Verificar WMTS, proyección polar lunar y atribución; usar el mapa para seleccionar coordenadas reales.
-4. **Visualización Blender.** Exportar GLB optimizado, conectar selección de sitio y tiempo; añadir vista local y horizonte cuando los activos estén disponibles.
+3. **Cartografía Moon Trek.** El modelo visual Blender con cartografía integrada ya reemplaza las teselas WMTS en el visor. Mantener la atribución y validar la procedencia/resolución de los mapas integrados; la selección de coordenadas usa el GLB y el DEM del backend.
+4. **Visualización Blender.** GLB integrado y sincronizado con selección de sitio y tiempo; revisar carga/performance del modelo y conservar la distinción entre relieve visual y fuente científica del análisis.
 5. **Evaluación de misión y presentación.** Reglas explicables de energía y comunicación, comparación de alternativas, narrativa de demostración y exportación verificable.
 
 ### Criterios de aceptación de la demostración
