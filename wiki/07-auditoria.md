@@ -1,3 +1,5 @@
+> Documento de un corte historico. Para el estado actual consultar [Estado vigente](14-estado-y-pendientes.md) y [Registro de entregas](15-registro-de-entregas.md).
+
 # Auditoría de código
 
 [Índice](README.md) · [Plan priorizado](08-plan-del-equipo.md) · [Evidencia JSON](evidencias/auditoria-257c287.json)

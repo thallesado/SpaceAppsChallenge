@@ -1,3 +1,5 @@
+> Documento de un corte historico. Para el estado actual consultar [Estado vigente](14-estado-y-pendientes.md) y [Registro de entregas](15-registro-de-entregas.md).
+
 # Flujo del sistema
 
 [Índice](README.md) · [Arquitectura](03-arquitectura.md)

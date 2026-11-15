@@ -1,41 +1,41 @@
 # Wiki de LunarPath
 
-Nueva función: [consultas personalizadas con Gemini](13-consultas-generativas.md), configuración y alcance de verificación.
+**Empieza por [Continuidad para otra IA](00-continuidad-para-ia.md) y [Estado vigente y pendientes](14-estado-y-pendientes.md).** No hace falta reconstruir el chat ni revisar todo el código para entender el proyecto.
 
-> **Estado actual:** [integraci?n local con datos reales](12-integracion-datos-reales.md). La nueva indicaci?n incorpora Moon Trek junto al modelo Blender; esta p?gina distingue los cortes hist?ricos del estado integrado.
+Proyecto principal: [thallesado/SpaceAppsChallenge](https://github.com/thallesado/SpaceAppsChallenge), rama `main`. Último corte funcional documentado: `b551128`; la documentación puede tener commits posteriores.
 
-> **Corrección de alcance, 15 de noviembre:** el usuario indicó que debe revisarse el main de **ELkin2624/Lunar-Landing-Site-Navigator**, cuyo corte descargado es `fbe2a7b`. Lee primero la [corrección y resultados del repositorio correcto](11-correccion-repositorio-elkin.md). La auditoría anterior de `257c287` corresponde a thallesado/SpaceAppsChallenge y no describe íntegramente esa otra línea.
+## Lectura operativa
 
-Documentación del proyecto **Lunar Landing Site Navigator**, NASA Space Apps. Esta wiki combina inspección del código, historial Git y decisiones de la conversación de trabajo. Explica el sistema existente y separa las propuestas del equipo de las capacidades comprobadas.
-
-**Corte auditado:** `257c28743cb3fb269b46bd006e47f1aec8811795`, `main` de `thallesado/SpaceAppsChallenge`. Fecha de revisión según contexto del proyecto: **14 de noviembre de 2026, America/La_Paz**. El texto recibido del equipo se presenta como estado al **15 de noviembre**; se conserva como declaración del remitente, no como fecha actual ni evidencia de implementación.
-
-## Recorrido de lectura
-
-1. [Contexto, reto y objetivo del producto](01-contexto-y-producto.md).
-2. [Qué hace el usuario y qué sucede en cada paso](02-flujo-paso-a-paso.md).
-3. [Arquitectura y responsabilidades](03-arquitectura.md).
-4. [APIs, contratos y procedencia](04-apis-y-contratos.md).
-5. [Motor científico y significado de los resultados](05-motor-cientifico.md).
-6. [Evolución por commits y decisiones](06-historia-y-decisiones.md).
-7. [Auditoría del código y evidencia reproducible](07-auditoria.md).
-8. [Evaluación del próximo trabajo en paralelo](08-plan-del-equipo.md).
-9. [Instalación, operación y verificación](09-operacion-y-validacion.md).
-10. [Síntesis de esta conversación](fuentes/conversacion.md) y [plan recibido del equipo](fuentes/plan-recibido.md).
-11. [Pruebas del 15 de noviembre y faltantes priorizados](10-pruebas-y-faltantes.md).
-
-**Decisi?n actual:** conservar Blender y usar tambi?n Moon Trek como mapa NASA; ver la actualizaci?n enlazada arriba.
-
-## Cómo interpretar el estado
-
-| Etiqueta | Significado |
+| Necesidad | Página |
 | --- | --- |
-| Implementado | Se identificó código que realiza la función. |
-| Verificado | Se ejecutó una comprobación; se indica si fue sintética, compilación o navegador/API. |
-| Histórico | Resultado mencionado en una etapa anterior; no implica vigencia en el código actual. |
-| Propuesto | Diseño o trabajo pendiente, sin afirmarlo operativo. |
-| No localizado | No aparece en el corte inspeccionado; puede estar en otra rama o equipo. |
+| Pasar el proyecto a otra IA, con prompt listo | [Continuidad y contexto mínimo](00-continuidad-para-ia.md) |
+| Saber qué funciona, contratos, módulos, arranque, pruebas y pendientes | [Estado vigente](14-estado-y-pendientes.md) |
+| Entender qué cambió y por qué | [Registro de entregas](15-registro-de-entregas.md) |
+| Consultas Gemini, puntos nuevos, búsqueda mensual y límites orbitales | [Consultas personalizadas](13-consultas-generativas.md) |
+| Integración de Elkin, Blender, Moon Trek y ciencia | [Datos reales e integración](12-integracion-datos-reales.md) |
+| Instrucciones de mantenimiento para agentes | [AGENTS.md](../AGENTS.md) |
 
-**Lectura de estado:** hay una demostración funcional conectada y un motor regional útil. No hay base suficiente para presentar una decisión segura de alunizaje. La auditoría detecta defectos concretos en energía, ranking y coherencia visual, además de brechas de trazabilidad. Que pasen las pruebas existentes no elimina esos defectos.
+**Decisiones vigentes:** Blender como visor 3D y Moon Trek como mapa complementario; coordenadas personalizadas y candidatos generados; Gemini interpreta y NASA calcula; sin métricas ficticias. Las recomendaciones comparan candidatos y fechas muestreados, no certifican seguridad de alunizaje. Las peticiones orbitales requieren otra capacidad científica y no se convierten silenciosamente en análisis de superficie.
 
-La wiki vive en el repositorio para revisarse junto al código. No se creó ni publicó un repositorio separado de GitHub Wiki. No se modificó el motor durante esta revisión.
+## Archivo de contexto y auditorías
+
+Las siguientes páginas conservan sus cortes históricos. Para decidir qué está implementado ahora, prevalece el estado vigente enlazado arriba.
+
+1. [Contexto, reto y objetivo](01-contexto-y-producto.md).
+2. [Flujo original paso a paso](02-flujo-paso-a-paso.md).
+3. [Arquitectura del corte auditado](03-arquitectura.md).
+4. [APIs y contratos del corte auditado](04-apis-y-contratos.md).
+5. [Motor científico original](05-motor-cientifico.md).
+6. [Historia inicial y decisiones](06-historia-y-decisiones.md).
+7. [Auditoría de thallesado, corte 257c287](07-auditoria.md).
+8. [Plan recibido del equipo](08-plan-del-equipo.md).
+9. [Operación del corte original](09-operacion-y-validacion.md).
+10. [Pruebas y faltantes de la auditoría inicial](10-pruebas-y-faltantes.md).
+11. [Corrección: repositorio Elkin, corte fbe2a7b](11-correccion-repositorio-elkin.md).
+12. [Síntesis de conversación](fuentes/conversacion.md) y [texto recibido del equipo](fuentes/plan-recibido.md).
+
+## Mantener esta wiki
+
+Cada entrega debe actualizar el estado, la página temática y el registro, indicando pruebas ejecutadas y limitaciones. Ejecutar `python scripts/validate_wiki.py` desde la raíz. No copiar claves ni valores de `.env`.
+
+La wiki está versionada dentro de este repositorio, junto al código; no es un repositorio GitHub Wiki separado. «Publicado en GitHub» no significa «desplegado en un servidor público».

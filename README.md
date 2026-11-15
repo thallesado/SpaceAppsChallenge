@@ -2,9 +2,11 @@
 
 **[Wiki del proyecto](wiki/README.md)**: objetivo, uso paso a paso, arquitectura, APIs, historia por commits, decisiones de la conversación, auditoría y plan de evolución.
 
+**Para continuar con otra IA:** leer [traspaso y contexto mínimo](wiki/00-continuidad-para-ia.md), [estado vigente](wiki/14-estado-y-pendientes.md) y las instrucciones de [AGENTS.md](AGENTS.md). Cada entrega debe actualizar la wiki.
+
 Explorador lunar 3D y comparación de oportunidades de iluminación y visibilidad de la Tierra para el polo sur lunar.
 
-- **Visor 3D:** modelo Blender MOON_ME (`frontend/public/luna/luna_cientifica.glb`), cargado localmente sin solicitar teselas Moon Trek en ejecución. El asset incluye mapas de albedo/relieve visual; no sustituye los datos de terreno del análisis.
+- **Visor 3D:** modelo Blender MOON_ME (`frontend/public/luna/luna_cientifica.glb`), cargado localmente. Moon Trek proporciona el mapa complementario. El asset incluye mapas de albedo/relieve visual; no sustituye los datos de terreno del análisis.
 - **Terreno analítico:** NASA PDS LOLA; el modelo incluye cartografía de procedencia NASA, incluida Moon Trek / LRO WAC.
 - **Efemérides:** NASA/JPL Horizons.
 - **Relieve y horizonte:** NASA PDS LOLA, con acceso adicional a catálogos PGDA.

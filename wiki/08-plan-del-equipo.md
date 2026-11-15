@@ -1,3 +1,5 @@
+> Documento de un corte historico. Para el estado actual consultar [Estado vigente](14-estado-y-pendientes.md) y [Registro de entregas](15-registro-de-entregas.md).
+
 # Evaluación del próximo trabajo en paralelo
 
 > Actualización del 15 de noviembre: el usuario decidió mantener MOON Blender y no usar Moon Trek. Las tareas de ese portal descritas en el plan recibido quedan fuera del alcance. El plan vigente está en [pruebas y faltantes](10-pruebas-y-faltantes.md).

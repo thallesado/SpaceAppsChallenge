@@ -1,3 +1,5 @@
+> Documento de un corte historico. Para el estado actual consultar [Estado vigente](14-estado-y-pendientes.md) y [Registro de entregas](15-registro-de-entregas.md).
+
 # Contexto y objetivo
 
 [Índice](README.md) · [Flujo de uso](02-flujo-paso-a-paso.md)
