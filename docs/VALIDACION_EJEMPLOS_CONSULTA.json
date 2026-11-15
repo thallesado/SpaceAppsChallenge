@@ -1,0 +1,11 @@
+{
+  "examples": 3,
+  "fill_and_focus": true,
+  "editable": true,
+  "keyboard": true,
+  "automatic_plan_or_search_calls": 0,
+  "mobile_width": 390,
+  "overflow": false,
+  "errors": [],
+  "scope": "UI verification only; existing scientific calculation unchanged"
+}

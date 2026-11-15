@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LoaderCircle, Sparkles } from 'lucide-react'
 import { request } from './plannerApi'
 import type { Point, SearchResult } from './plannerApi'
+import './assistant-examples.css'
 
 type Plan = {
   start_date: string; duration_days: number; search_days: number; site_ids: string[]; coordinates: Point[]
@@ -18,6 +19,16 @@ export default function AssistantSearch({ date, selected, disabled, onPoints, on
   const [text, setText] = useState(''), [prepared, setPrepared] = useState<Prepared | null>(null)
   const [configured, setConfigured] = useState<boolean | null>(null), [busy, setBusy] = useState(''), [error, setError] = useState('')
   const sequence = useRef(0)
+  const questionInput = useRef<HTMLTextAreaElement>(null)
+  const month = new Intl.DateTimeFormat('es', {month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`))
+  const examples = [
+    {title:'Analizar mis coordenadas', description:'Comprueba luz, Tierra visible y horas continuas en tu punto.',
+      text:`Analiza la coordenada latitud -89.5, longitud 0, desde ${date}, durante un día y sin buscar otras fechas. Necesito al menos 6 horas continuas de Sol y Tierra visibles y un máximo de 12 horas de oscuridad.`},
+    {title:'Descubrir puntos nuevos', description:'Genera candidatos alrededor de una coordenada y compáralos.',
+      text:`Genera 3 puntos nuevos alrededor de latitud -89, longitud 0, a 20 km. Compáralos desde ${date}, durante un día y sin otras fechas. Muéstrame las 2 mejores opciones con al menos 6 horas continuas de Sol y Tierra visibles.`},
+    {title:'Encontrar dos fechas', description:`Busca oportunidades durante ${month} en una región.`,
+      text:`Busca las 2 mejores fechas distintas de ${month} completo para explorar la superficie lunar, un día por escenario. Genera 3 puntos nuevos alrededor de latitud -89, longitud 0, a 20 km. Necesito al menos 6 horas continuas de Sol y Tierra visibles.`},
+  ]
   useEffect(() => { const c = new AbortController(); request<{configured:boolean}>('/api/v1/assistant/status', undefined, c.signal)
     .then(s => setConfigured(s.configured)).catch(() => setConfigured(false)); return () => {c.abort(); sequence.current++} }, [])
   function change(value: string) { sequence.current++; setText(value); setPrepared(null); setBusy(''); setError(''); onPoints([]) }
@@ -41,8 +52,14 @@ export default function AssistantSearch({ date, selected, disabled, onPoints, on
   return <section className="assistant-search" aria-label="Búsqueda por consulta">
     <div><span className="section-label"><Sparkles size={15}/> CONSULTA LUNAR</span><h2>¿Qué quieres explorar?</h2></div>
     <label htmlFor="lunar-question">Sitios, fechas y condiciones que necesitas</label>
-    <textarea id="lunar-question" value={text} maxLength={2000} onChange={e => change(e.target.value)}
-      placeholder="Compara Mons Malapert y Mons Mouton desde el 15 de noviembre de 2026. Busca inicios durante los siguientes 3 días y al menos 6 horas continuas de luz y Tierra visible." rows={3}/>
+    <p className="assistant-scope">Consulta por luz solar, Tierra visible, horas continuas o fechas favorables. Puedes usar tus coordenadas o pedir puntos nuevos en una región.</p>
+    <textarea ref={questionInput} id="lunar-question" value={text} maxLength={2000} onChange={e => change(e.target.value)}
+      placeholder="Describe dónde, cuándo y qué condiciones necesitas, o elige una idea de abajo." rows={3}/>
+    <div className="assistant-examples"><h3>Prueba con una idea</h3><div className="assistant-examples-grid">{examples.map(example =>
+      <button key={example.title} type="button" aria-label={`Usar ejemplo: ${example.title}`} disabled={disabled || !!busy} onClick={() => {change(example.text); questionInput.current?.focus()}}>
+        <strong>{example.title}<span aria-hidden="true">↗</span></strong><span>{example.description}</span>
+      </button>)}
+    </div><small>Se completa el texto para que lo adaptes; la búsqueda comienza cuando pulses «Preparar búsqueda».</small></div>
     <div className="assistant-actions"><span>Gemini interpreta · Horizons y LOLA calculan</span><button className="nav-primary" onClick={prepare} disabled={configured !== true || disabled || !!busy || text.trim().length < 8}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>}Preparar búsqueda</button></div>
     {configured === false && <p role="status">Gemini pendiente de configuración en el servidor. Las búsquedas manuales siguen disponibles.</p>}
     {busy && <p role="status">{busy}…</p>}{error && <p role="alert">{error}</p>}

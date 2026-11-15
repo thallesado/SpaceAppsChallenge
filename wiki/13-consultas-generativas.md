@@ -1,5 +1,15 @@
 # Búsquedas personalizadas con Gemini
 
+## Ideas visibles junto a la caja
+
+La interfaz ofrece tres ejemplos seleccionables: **Analizar mis coordenadas**, **Descubrir puntos nuevos** y **Encontrar dos fechas**. Se adaptan a la fecha o mes del formulario actual. Cada botón completa el texto, limpia el plan previo y enfoca el campo para editarlo. No llama a Gemini ni ejecuta cálculos hasta pulsar «Preparar búsqueda».
+
+Los ejemplos cubren una coordenada propia con límites de oscuridad, tres candidatos geodésicos alrededor de un centro/radio y dos fechas distintas dentro de un mes completo. Evitan presentar el catálogo como la única entrada. Una frase breve enumera los criterios soportados: luz, Tierra visible, duración continua y fechas.
+
+La petición de la captura «los dos puntos más cercanos entre sí» todavía no corresponde a un criterio de ranking implementado. La distancia se usa para generar vecinos geodésicos, pero el asistente no ofrece búsqueda de pares por proximidad. No afirmar que ya implementa ese análisis ni confundirlo con iluminación.
+
+Archivos: `frontend/src/AssistantSearch.tsx` y `assistant-examples.css`. Build correcto; navegador comprobó tres ejemplos distintos, foco, edición posterior, teclado, cero llamadas automáticas de planificación/búsqueda y móvil de 390 px sin desbordamiento ni errores JS. [Evidencia](../docs/VALIDACION_EJEMPLOS_CONSULTA.json). No se repitieron consultas de pago a Gemini ni validaciones científicas para esta mejora de interfaz.
+
 La caja «¿Qué quieres explorar?» interpreta sitios, coordenadas, fechas y condiciones en lenguaje natural. Presenta un plan y sus supuestos antes de ejecutar. «Buscar opciones con datos NASA» utiliza el motor existente, no cifras del modelo. Se reutilizan comparación, ranking, ventanas, errores de cobertura y selección de resultados. Los puntos aparecen en el globo y, dentro del encuadre, numerados en el mapa NASA.
 
 ## Configuración
