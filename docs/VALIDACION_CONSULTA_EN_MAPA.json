@@ -1,0 +1,20 @@
+{
+  "gemini": "real authenticated interpretation",
+  "scientific_search": "real NASA-backed engine; cache allowed",
+  "points": 9,
+  "radius_km": 20,
+  "evaluated": 9,
+  "shown": 9,
+  "auto_fit": true,
+  "all_markers_inside_map": true,
+  "selection_preserves_viewport": true,
+  "preview_click_centers_map": true,
+  "result_click_centers_map": true,
+  "result_click_scrolls_to_map": true,
+  "no_duplicate_custom_points": true,
+  "keyboard": true,
+  "technical_details_collapsed": true,
+  "mobile_width": 390,
+  "overflow": false,
+  "errors": []
+}

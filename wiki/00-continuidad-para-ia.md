@@ -22,7 +22,7 @@ Después inspeccionar únicamente los módulos afectados. No afirmar que el cód
 - Principal: [thallesado/SpaceAppsChallenge](https://github.com/thallesado/SpaceAppsChallenge), rama `main`.
 - Fuente de mejoras: [ELkin2624/Lunar-Landing-Site-Navigator](https://github.com/ELkin2624/Lunar-Landing-Site-Navigator), revisión integrada `fbe2a7b`.
 - En la copia de trabajo original, `spaceapps` es el principal y `origin` es Elkin. En un clon nuevo pueden llamarse distinto: verificar la URL.
-- Último código publicado al preparar este traspaso: [`b551128`](https://github.com/thallesado/SpaceAppsChallenge/commit/b551128). La documentación puede tener commits posteriores sin cambiar ese corte funcional.
+- Base científica y generativa publicada: [`b551128`](https://github.com/thallesado/SpaceAppsChallenge/commit/b551128). Las mejoras posteriores de interfaz y navegación están en el estado vigente y el registro de entregas; no tomar ese hash como el último commit del proyecto.
 - Se mantuvo el modelo Blender. Una decisión intermedia excluyó Moon Trek; el usuario la reemplazó expresamente por Blender **más** mapa Moon Trek. No restaurar la exclusión antigua.
 - Se autorizó y realizó publicación de las entregas anteriores. Para nuevas acciones, respetar la autorización y alcance de la sesión actual; el historial no autoriza cualquier cambio externo.
 

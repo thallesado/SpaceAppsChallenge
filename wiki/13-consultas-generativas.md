@@ -1,5 +1,7 @@
 # Búsquedas personalizadas con Gemini
 
+Actualización de interacción: la propuesta y los resultados se vinculan al Explorador con área, números y selección directa. Las coordenadas y filtros detallados están plegados inicialmente. Ver [consulta interactiva en el mapa](17-consulta-interactiva-en-mapa.md).
+
 ## Ideas visibles junto a la caja
 
 La interfaz ofrece tres ejemplos seleccionables: **Analizar mis coordenadas**, **Descubrir puntos nuevos** y **Encontrar dos fechas**. Se adaptan a la fecha o mes del formulario actual. Cada botón completa el texto, limpia el plan previo y enfoca el campo para editarlo. No llama a Gemini ni ejecuta cálculos hasta pulsar «Preparar búsqueda».

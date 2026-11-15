@@ -24,7 +24,7 @@ try {
   await page.goto('http://127.0.0.1:5174',{waitUntil:'networkidle',timeout:180000});
   await page.getByLabel('Sitios, fechas y condiciones que necesitas').fill(generated ? 'Genera 3 puntos nuevos alrededor de latitud -89, longitud 0 a 20 km. Analiza un dia desde el 15 de noviembre de 2026, sin otras fechas, minimo 0% luz, 0% Tierra, 0 horas continuas. Muestra dos opciones.' : 'Muestra seis alternativas. Compara Mons Mouton y Mons Malapert desde el 15 de noviembre de 2026, un dia por escenario, probando inicios ese dia y los dos siguientes. Necesito seis horas continuas de Sol y Tierra visibles, minimo 40% de luz y 40% de Tierra visible.');
   await page.getByRole('button',{name:'Preparar búsqueda',exact:true}).click();
-  await expect(page.locator('.assistant-points span')).toHaveCount(expectedPoints,{timeout:120000});
+  await expect(page.locator('.assistant-coordinate-link')).toHaveCount(expectedPoints,{timeout:120000});
   await expect(page.locator('.assistant-plan')).toContainText(`${generated ? 3 : 6} alternativas`);
   await page.getByRole('button',{name:'Buscar opciones con datos NASA',exact:true}).click();
   await expect(page.locator('.assistant-answer')).toContainText('Horizons y LOLA',{timeout:180000});

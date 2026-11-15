@@ -19,6 +19,10 @@ El usuario pidió dibujos para entender el sistema de un vistazo. Se añadieron 
 
 El usuario pidió conocer los tipos de consultas y disponer de al menos tres ideas en pantalla. Se añadieron tarjetas para coordenadas propias, puntos nuevos y fechas mensuales. Rellenan el texto editable y lo enfocan, sin ejecutar Gemini ni NASA automáticamente. Archivos: `AssistantSearch.tsx`, `assistant-examples.css`. Build correcto y navegador con tres ejemplos, teclado, edición, cero solicitudes automáticas y móvil sin desbordamiento ni errores JS. [Detalle y evidencia](13-consultas-generativas.md). El ranking por distancia entre pares mostrado en la captura sigue fuera del alcance implementado.
 
+### Consulta y resultados vinculados al mapa, posterior a `9a0dd2a`
+
+El usuario pidió sustituir la lista predominante de coordenadas por referencias gráficas, y después solicitó que pulsar la exploración o resultado lo lleve al punto. Se añadió contorno de área, encuadre automático, marcadores numerados seleccionables, cálculo desde el mapa y navegación con centrado y resaltado desde propuestas/resultados. Los detalles técnicos quedan plegados; métricas y colores solo proceden del cálculo. Se aclaró que Gemini propone y NASA alimenta la evaluación. Build correcto y recorrido real de nueve candidatos con Gemini/Horizons/LOLA; clics, centrado, teclado y móvil verificados. [Archivos, flujo y evidencia](17-consulta-interactiva-en-mapa.md). Sin cambios del motor científico.
+
 ## Cómo añadir una entrada
 
 Registrar problema u objetivo, comportamiento final, decisión del usuario que reemplaza una anterior, módulos afectados, pruebas realmente ejecutadas, evidencia guardada, pendientes y publicación si aplica. No escribir un hash de commit antes de que exista: usar descripción y corte funcional anterior, o enlazar el hash en una actualización posterior.

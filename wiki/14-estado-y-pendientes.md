@@ -1,6 +1,6 @@
 # Estado vigente y pendientes
 
-Actualizado el 15 de noviembre de 2026. Corte funcional: `b551128`; complementa y reemplaza afirmaciones de estado antiguas de las páginas 01–11. Este documento se actualiza con cada entrega relevante. No contiene secretos ni depende del historial del chat.
+Actualizado el 15 de noviembre de 2026. Base científica/generativa: `b551128`; la evolución posterior de interfaz se describe aquí y en el registro de entregas. Complementa y reemplaza afirmaciones de estado antiguas de las páginas 01–11. Este documento se actualiza con cada entrega relevante. No contiene secretos ni depende del historial del chat.
 
 ## Qué funciona
 
@@ -10,6 +10,7 @@ Actualizado el 15 de noviembre de 2026. Corte funcional: `b551128`; complementa 
 | Explicación visual | «Datos y método» comienza con tres diagramas: coordenada/fecha, posiciones frente al relieve y ventanas simultáneas. Ejemplo interactivo de Sol oculto/visible, rotulado como ilustración. | `MethodExplainer.tsx`, `method-explainer.css`; ver [detalle y evidencia](16-explicacion-visual-del-metodo.md) |
 | Globo | Luna Blender GLB, direcciones reales de Sol/Tierra y modelos de esos cuerpos; distancias/tamaños visuales simbólicos. | `frontend/src/MoonScene.tsx`, `frontend/public/luna/`, `sol/`, `tierra/` |
 | Mapa | Moon Trek polar, NAC/LOLA, paneo, escala, cursor, zoom, selección y marcadores de consultas. Imágenes de archivo, no sombras de la fecha. | `SurfaceMap.tsx`, `LocalTileMap.tsx`, `moontrek.ts`, `polar.ts` |
+| Consulta sobre el mapa | La propuesta encuadra candidatos numerados y contorno regional; comparar desde el mapa, seleccionar sin duplicados y abrir una propuesta o resultado centran su coordenada. Filtros y coordenadas en detalle desplegable. | `AssistantSearch.tsx`, `App.tsx`, `SurfaceMap.tsx`, `queryMapGeometry.ts`; [detalle y prueba real](17-consulta-interactiva-en-mapa.md) |
 | Efemérides | NASA/JPL Horizons para Sol y Tierra, caché SQLite con coordenadas exactas, intervalos validados. | `backend/app/horizons.py`, `cache.py`, `main.py` |
 | Horizonte | DEM 20 m cercano hasta 5 km con cobertura completa; 240 m lejano hasta distancia solicitada. Mismo origen físico DEM + altura del observador. Fuente/distancia dominante por azimut. | `backend/app/terrain.py` |
 | Relieve y pendiente | Malla fina o gruesa según cobertura; fuente y resolución explícitas. Pendiente regional de 240 m, no escala del vehículo. | `backend/app/planner.py`, `mesh.py`, `slope.py` |
