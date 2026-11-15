@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MANDATORY: Declare support for both light and dark themes -->
+  <meta name="color-scheme" content="light dark">
+  <title>Observatorio Solar 3D — Precisión Astronómica (IAU_SUN · Carrington · JPL Horizons)</title>
+  <style>
+    :root {
+      --brand-accent-light: #d9460f;
+      --brand-accent-dark: #fb923c;
+      --brand-color: var(--brand-accent-light);
+
+      --panel-bg-light: rgba(255, 251, 245, 0.88);
+      --panel-bg-dark: rgba(18, 10, 6, 0.84);
+      --panel-bg: var(--panel-bg-light);
+
+      --panel-border-light: rgba(124, 45, 18, 0.2);
+      --panel-border-dark: rgba(251, 146, 60, 0.25);
+      --panel-border: var(--panel-border-light);
+
+      --text-primary-light: #1c1917;
+      --text-primary-dark: #fff7ed;
+      --text-primary: var(--text-primary-light);
+
+      --text-muted-light: #78716c;
+      --text-muted-dark: #fdba74;
+      --text-muted: var(--text-muted-light);
+
+      @media (prefers-color-scheme: dark) {
+        --brand-color: var(--brand-accent-dark);
+        --panel-bg: var(--panel-bg-dark);
+        --panel-border: var(--panel-border-dark);
+        --text-primary: var(--text-primary-dark);
+        --text-muted: var(--text-muted-dark);
+      }
+
+      @supports (color: light-dark(white, black)) {
+        --brand-color: light-dark(var(--brand-accent-light), var(--brand-accent-dark));
+        --panel-bg: light-dark(var(--panel-bg-light), var(--panel-bg-dark));
+        --panel-border: light-dark(var(--panel-border-light), var(--panel-border-dark));
+        --text-primary: light-dark(var(--text-primary-light), var(--text-primary-dark));
+        --text-muted: light-dark(var(--text-muted-light), var(--text-muted-dark));
+      }
+
+      color-scheme: light dark;
+      accent-color: var(--brand-color);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #030100;
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      accent-color: var(--brand-color);
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .hud-panel {
+      position: fixed;
+      z-index: 10;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+    }
+
+    #left-panel {
+      top: 18px;
+      left: 18px;
+      width: 375px;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #right-panel {
+      top: 18px;
+      right: 18px;
+      width: 330px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(251, 146, 60, 0.16);
+      color: var(--brand-color);
+      border: 1px solid rgba(251, 146, 60, 0.35);
+    }
+
+    h1 {
+      font-size: 1.12rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .section-title {
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 4px;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric-card {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(251, 146, 60, 0.07);
+      border: 1px solid var(--panel-border);
+    }
+
+    .metric-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .metric-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      margin-top: 2px;
+      display: block;
+    }
+
+    form.controls-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .checkbox-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 0.82rem;
+    }
+
+    .checkbox-list label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    button.poi-btn {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      background: rgba(251, 146, 60, 0.1);
+      color: var(--text-primary);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button.poi-btn:hover {
+      background: rgba(251, 146, 60, 0.24);
+      border-color: var(--brand-color);
+    }
+
+    #status-banner {
+      font-size: 0.76rem;
+      color: var(--brand-color);
+      font-weight: 600;
+    }
+
+    /* Fallback for older browsers without accent-color */
+    @supports not (accent-color: var(--brand-color)) {
+      form input[type="checkbox"].visually-hidden {
+        position: absolute !important;
+        clip-path: inset(50%) !important;
+        overflow: hidden !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        white-space: nowrap !important;
+      }
+
+      .checkbox-list label {
+        position: relative;
+        padding-left: 1.8rem;
+      }
+
+      input[type="checkbox"] + span::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.1rem;
+        height: 1.1rem;
+        border: 2px solid #fdba74;
+        background: transparent;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      input[type="checkbox"]:focus-visible + span::before {
+        outline: 2px solid var(--brand-color);
+        outline-offset: 2px;
+      }
+
+      input[type="checkbox"]:checked + span::before {
+        background-color: var(--brand-color, #fb923c);
+        border-color: var(--brand-color, #fb923c);
+      }
+
+      input[type="checkbox"]:checked + span::after {
+        content: "✓";
+        position: absolute;
+        left: 0.22rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #1c1917;
+        font-weight: bold;
+        font-size: 0.82rem;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+      }
+
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        background: linear-gradient(to right, var(--brand-color, #fb923c) var(--progress, 50%), #57534e var(--progress, 50%));
+        border-radius: 4px;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: var(--brand-color, #fb923c);
+        cursor: pointer;
+        margin-top: -4px;
+      }
+
+      input[type="range"]::-moz-range-track {
+        width: 100%;
+        height: 8px;
+        background: #57534e;
+        border-radius: 4px;
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: var(--brand-color, #fb923c);
+        cursor: pointer;
+      }
+
+      input[type="range"]::-moz-range-progress {
+        background-color: var(--brand-color, #fb923c);
+        height: 8px;
+        border-radius: 4px;
+      }
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- Panel Izquierdo: Efemérides Solares JPL Horizons y Controles -->
+  <aside id="left-panel" class="hud-panel" aria-label="Control de Efemérides Solares">
+    <div class="badge-row">
+      <span class="badge">IAU_SUN Carrington</span>
+      <span class="badge">Efecto Wilson 3D</span>
+      <span class="badge">JPL Horizons</span>
+    </div>
+    <div>
+      <h1>Observatorio Solar 3D</h1>
+      <p class="subtitle">Fotosfera con granulación multi-escala, depresión Wilson en manchas solares, oscurecimiento de limbo de Eddington y efemérides reales de NASA JPL Horizons.</p>
+    </div>
+
+    <div id="status-banner">Cargando modelo 3D sol_cientifico.glb...</div>
+
+    <form class="controls-form" onsubmit="return false;">
+      <div class="control-group">
+        <div class="control-header">
+          <label for="ephem-slider">Efemérides JPL Horizons (UTC):</label>
+          <span id="date-display">2026-Nov-14 22:00</span>
+        </div>
+        <input type="range" id="ephem-slider" min="0" max="11" step="1" value="0">
+      </div>
+
+      <div class="control-group">
+        <div class="control-header">
+          <label for="corona-slider">Intensidad de Corona K:</label>
+          <span id="corona-display">1.00</span>
+        </div>
+        <input type="range" id="corona-slider" min="0.0" max="2.2" step="0.05" value="1.0">
+      </div>
+
+      <div class="control-group">
+        <div class="control-header">
+          <label for="exposure-slider">Exposición Fotométrica:</label>
+          <span id="exposure-display">1.15</span>
+        </div>
+        <input type="range" id="exposure-slider" min="0.5" max="2.2" step="0.05" value="1.15">
+      </div>
+
+      <div class="checkbox-list">
+        <label for="chk-auto-rotate">
+          <input type="checkbox" id="chk-auto-rotate" class="visually-hidden" checked>
+          <span>Rotación solar sinódica continua (Carrington)</span>
+        </label>
+        <label for="chk-corona">
+          <input type="checkbox" id="chk-corona" class="visually-hidden" checked>
+          <span>Mostrar Corona Solar K y espículas de limbo</span>
+        </label>
+      </div>
+    </form>
+
+    <div>
+      <div class="section-title">Regiones Activas y Cinturones Heliográficos</div>
+      <div class="btn-grid">
+        <button type="button" class="poi-btn" data-lat="16.0" data-lon="58.0">Grupo Bipolar AR Norte</button>
+        <button type="button" class="poi-btn" data-lat="-18.0" data-lon="42.0">Complejo de Manchas Sur</button>
+        <button type="button" class="poi-btn" data-lat="12.0" data-lon="-35.0">Filamento y Plage Activa</button>
+        <button type="button" class="poi-btn" data-lat="85.0" data-lon="0.0">Región Polar Norte (B0)</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Panel Derecho: Telemetría Heliográfica en Vivo -->
+  <aside id="right-panel" class="hud-panel" aria-label="Telemetría Heliográfica">
+    <div class="section-title">Telemetría Heliográfica (JPL Horizons)</div>
+    <div class="telemetry-grid">
+      <div class="metric-card">
+        <span class="metric-label">Longitud Carrington (L0)</span>
+        <span class="metric-value" id="val-l0">61.96°</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Latitud Centro Disco (B0)</span>
+        <span class="metric-value" id="val-b0">+2.89°</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Distancia Tierra-Sol</span>
+        <span class="metric-value" id="val-dist">0.9893 AU</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Ángulo Polo Norte (P)</span>
+        <span class="metric-value" id="val-pa">+21.42°</span>
+      </div>
+    </div>
+
+    <div class="section-title">Sol visto desde Polo Sur Lunar (coord@301)</div>
+    <div class="telemetry-grid">
+      <div class="metric-card">
+        <span class="metric-label">Azimut / Elevación</span>
+        <span class="metric-value" id="val-moon-sp">115.4° / +1.51°</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Diámetro Aparente</span>
+        <span class="metric-value" id="val-ang-diam">1941.7" (0.54°)</span>
+      </div>
+    </div>
+
+    <div class="section-title">Cursor sobre Fotosfera (IAU_SUN)</div>
+    <div class="telemetry-grid">
+      <div class="metric-card">
+        <span class="metric-label">Latitud / Longitud</span>
+        <span class="metric-value" id="val-cursor-coord">—</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Temp. Efectiva Local</span>
+        <span class="metric-value" id="val-cursor-temp">5,772 K</span>
+      </div>
+    </div>
+  </aside>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    if (!CSS.supports('accent-color: #000')) {
+      document.querySelectorAll('input[type="range"]').forEach((slider) => {
+        const updateProgress = () => {
+          const min = parseFloat(slider.min || 0);
+          const max = parseFloat(slider.max || 100);
+          const val = parseFloat(slider.value || 0);
+          const pct = ((val - min) / (max - min)) * 100;
+          slider.style.setProperty('--progress', `${pct}%`);
+        };
+        slider.addEventListener('input', updateProgress);
+        updateProgress();
+      });
+    }
+
+    const container = document.getElementById('canvas-container');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x030100);
+
+    const camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(4.9, 0.2, 0.0);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 1.35;
+    controls.maxDistance = 18.0;
+
+    function heliographicToVector3(lonDeg, latDeg, radius = 1.0) {
+      const lon = THREE.MathUtils.degToRad(lonDeg);
+      const lat = THREE.MathUtils.degToRad(latDeg);
+      return new THREE.Vector3(
+        radius * Math.cos(lat) * Math.cos(lon),
+        radius * Math.sin(lat),
+        -radius * Math.cos(lat) * Math.sin(lon)
+      );
+    }
+
+    // Estrellas de fondo
+    const starCount = 2200;
+    const starPositions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const r = 80;
+      const u = Math.random() * 2 - 1;
+      const theta = Math.random() * Math.PI * 2;
+      const s = Math.sqrt(1 - u * u);
+      starPositions[i * 3] = r * s * Math.cos(theta);
+      starPositions[i * 3 + 1] = r * u;
+      starPositions[i * 3 + 2] = r * s * Math.sin(theta);
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffe4c4, size: 0.09 })));
+
+    // Halo de Corona Solar K (Shader GLSL Aditivo sin borde duro)
+    const coronaUniforms = {
+      uIntensity: { value: 1.0 },
+      uTime: { value: 0.0 }
+    };
+    const coronaGeo = new THREE.PlaneGeometry(3.2, 3.2);
+    const coronaMat = new THREE.ShaderMaterial({
+      uniforms: coronaUniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv * 2.0 - 1.0;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform float uIntensity;
+        uniform float uTime;
+        void main() {
+          float r = length(vUv);
+          float sunRadius = 0.625;
+          if (r < sunRadius * 0.96) discard;
+          float dist = max(0.0, (r - sunRadius) / (1.0 - sunRadius));
+          float angle = atan(vUv.y, vUv.x);
+          float streamers = 0.88 + 0.12 * sin(angle * 14.0 + uTime * 0.8) * cos(angle * 9.0 - uTime * 0.5);
+          float glow = pow(max(0.0, 1.0 - dist), 3.8) * streamers * uIntensity;
+          vec3 col = mix(vec3(0.95, 0.18, 0.01), vec3(1.0, 0.68, 0.18), pow(max(0.0, 1.0 - dist), 2.0));
+          gl_FragColor = vec4(col * glow * 0.95, glow);
+        }
+      `
+    });
+    const coronaBillboard = new THREE.Mesh(coronaGeo, coronaMat);
+    scene.add(coronaBillboard);
+
+    // Cargar efemérides solares de JPL Horizons
+    let ephemerisRecords = [];
+    try {
+      const resp = await fetch('./ephemeris_sol_horizons.json');
+      const data = await resp.json();
+      ephemerisRecords = data.records || [];
+    } catch (err) {
+      console.warn('No se pudo cargar ephemeris_sol_horizons.json:', err);
+    }
+
+    function applyEphemerisIndex(index) {
+      if (!ephemerisRecords.length) return;
+      const rec = ephemerisRecords[Math.max(0, Math.min(index, ephemerisRecords.length - 1))];
+      document.getElementById('date-display').textContent = rec.date_ut;
+      document.getElementById('val-l0').textContent = `${rec.carrington_sub_obs_lon_deg.toFixed(2)}°`;
+      document.getElementById('val-b0').textContent = `${rec.heliographic_b0_lat_deg >= 0 ? '+' : ''}${rec.heliographic_b0_lat_deg.toFixed(2)}°`;
+      document.getElementById('val-dist').textContent = `${rec.earth_sun_distance_au.toFixed(4)} AU`;
+      document.getElementById('val-pa').textContent = `+${rec.solar_north_pole_pa_deg.toFixed(2)}°`;
+
+      if (rec.lunar_south_pole_sun_azimuth_deg !== undefined) {
+        document.getElementById('val-moon-sp').textContent = `${rec.lunar_south_pole_sun_azimuth_deg.toFixed(1)}° / +${rec.lunar_south_pole_sun_elevation_deg.toFixed(2)}°`;
+        document.getElementById('val-ang-diam').textContent = `${rec.apparent_angular_diameter_arcsec.toFixed(1)}"`;
+      }
+
+      const camDist = camera.position.length();
+      camera.position.copy(heliographicToVector3(rec.carrington_sub_obs_lon_deg, rec.heliographic_b0_lat_deg, camDist));
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    // Cargar sol_cientifico.glb con shader de oscurecimiento de limbo de Eddington
+    let sunMesh = null;
+    const loader = new GLTFLoader();
+    const statusBanner = document.getElementById('status-banner');
+
+    loader.load(
+      './sol_cientifico.glb',
+      (gltf) => {
+        const root = gltf.scene;
+        root.traverse((child) => {
+          if (child.isMesh) {
+            sunMesh = child;
+            const tex = child.material.emissiveMap || child.material.map;
+            child.material = new THREE.ShaderMaterial({
+              uniforms: {
+                uMap: { value: tex }
+              },
+              vertexShader: `
+                varying vec2 vUv;
+                varying vec3 vNormalView;
+                varying vec3 vViewDir;
+                void main() {
+                  vUv = uv;
+                  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+                  vNormalView = normalize(normalMatrix * normal);
+                  vViewDir = normalize(-mvPos.xyz);
+                  gl_Position = projectionMatrix * mvPos;
+                }
+              `,
+              fragmentShader: `
+                uniform sampler2D uMap;
+                varying vec2 vUv;
+                varying vec3 vNormalView;
+                varying vec3 vViewDir;
+                void main() {
+                  vec3 texCol = texture2D(uMap, vUv).rgb;
+                  float mu = clamp(dot(normalize(vNormalView), normalize(vViewDir)), 0.0, 1.0);
+                  // Ley de oscurecimiento de limbo de Eddington dependiente de longitud de onda
+                  vec3 limbFactor = vec3(
+                    pow(mu, 0.38),
+                    pow(mu, 0.68),
+                    pow(mu, 1.15)
+                  );
+                  vec3 col = texCol * limbFactor * 1.35;
+                  gl_FragColor = vec4(col, 1.0);
+                }
+              `
+            });
+          }
+        });
+        scene.add(root);
+        statusBanner.textContent = 'Modelo solar IAU_SUN cargado correctamente.';
+        applyEphemerisIndex(0);
+      },
+      (xhr) => {
+        if (xhr.total) {
+          const pct = Math.round((xhr.loaded / xhr.total) * 100);
+          statusBanner.textContent = `Cargando sol_cientifico.glb (${pct}%)...`;
+        }
+      },
+      (err) => {
+        console.error('Error cargando GLB:', err);
+        statusBanner.textContent = 'Error cargando sol_cientifico.glb (ejecuta un servidor HTTP local).';
+      }
+    );
+
+    document.getElementById('ephem-slider').addEventListener('input', (e) => {
+      applyEphemerisIndex(parseInt(e.target.value, 10));
+    });
+
+    document.getElementById('corona-slider').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('corona-display').textContent = val.toFixed(2);
+      coronaUniforms.uIntensity.value = val;
+    });
+
+    document.getElementById('exposure-slider').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('exposure-display').textContent = val.toFixed(2);
+      renderer.toneMappingExposure = val;
+    });
+
+    document.getElementById('chk-corona').addEventListener('change', (e) => {
+      coronaBillboard.visible = e.target.checked;
+    });
+
+    document.querySelectorAll('.poi-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lat = parseFloat(btn.dataset.lat);
+        const lon = parseFloat(btn.dataset.lon);
+        camera.position.copy(heliographicToVector3(lon, lat, 3.1));
+        controls.target.set(0, 0, 0);
+        controls.update();
+      });
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    window.addEventListener('pointermove', (e) => {
+      if (!sunMesh) return;
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObject(sunMesh, true);
+      if (hits.length > 0) {
+        const p = hits[0].point.clone();
+        if (sunMesh.parent) sunMesh.parent.worldToLocal(p);
+        const r = p.length();
+        const latDeg = THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(p.y / r, -1, 1)));
+        const lonDeg = THREE.MathUtils.radToDeg(Math.atan2(-p.z, p.x));
+        const latLabel = `${Math.abs(latDeg).toFixed(2)}°${latDeg >= 0 ? 'N' : 'S'}`;
+        const lonLabel = `${((lonDeg + 360) % 360).toFixed(2)}°`;
+        document.getElementById('val-cursor-coord').textContent = `${latLabel}, L=${lonLabel}`;
+
+        // Estimación de temperatura efectiva local a partir de la depresión Wilson (umbra ~3900K, fotosfera ~5772K, plage ~6300K)
+        const tempK = Math.round(5772 + ((r - 1.0) / 0.014) * 1400);
+        document.getElementById('val-cursor-temp').textContent = `${tempK.toLocaleString()} K`;
+      } else {
+        document.getElementById('val-cursor-coord').textContent = '—';
+        document.getElementById('val-cursor-temp').textContent = '5,772 K';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+      coronaUniforms.uTime.value += dt;
+
+      if (sunMesh && document.getElementById('chk-auto-rotate').checked) {
+        sunMesh.rotation.y += dt * 0.035;
+      }
+
+      coronaBillboard.quaternion.copy(camera.quaternion);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

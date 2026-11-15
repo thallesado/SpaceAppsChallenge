@@ -1,5 +1,7 @@
 # LunarPath — Lunar Landing Site Navigator
 
+**[Wiki del proyecto](wiki/README.md)**: objetivo, uso paso a paso, arquitectura, APIs, historia por commits, decisiones de la conversación, auditoría y plan de evolución.
+
 Explorador lunar 3D y comparación de oportunidades de iluminación y visibilidad de la Tierra para el polo sur lunar.
 
 - **Visor 3D:** modelo Blender MOON_ME (`frontend/public/luna/luna_cientifica.glb`), cargado localmente sin solicitar teselas Moon Trek en ejecución. El asset incluye mapas de albedo/relieve visual; no sustituye los datos de terreno del análisis.

@@ -1,0 +1,86 @@
+{
+  "site": {
+    "latitude_deg": -86.0,
+    "longitude_deg": 3.8
+  },
+  "period_start_utc": "2026-11-15T00:00:00+00:00",
+  "period_end_utc": "2026-11-16T00:00:00+00:00",
+  "ephemeris_source": "JPL Horizons",
+  "terrain_source": "NASA PDS LOLA LDEM_75S_240M",
+  "horizon_range_km": 50,
+  "azimuth_step_deg": 5,
+  "temporal_minutes": {
+    "60": {
+      "samples": 24,
+      "sunlit_fraction": 1.0,
+      "earth_visible_fraction": 1.0,
+      "longest_darkness_hours": 0.0,
+      "longest_earth_blackout_hours": 0.0,
+      "transition_bracket_minutes": 60,
+      "events": 0
+    },
+    "15": {
+      "samples": 96,
+      "sunlit_fraction": 1.0,
+      "earth_visible_fraction": 1.0,
+      "longest_darkness_hours": 0.0,
+      "longest_earth_blackout_hours": 0.0,
+      "transition_bracket_minutes": 15,
+      "events": 0
+    },
+    "5": {
+      "samples": 288,
+      "sunlit_fraction": 0.999999999999997,
+      "earth_visible_fraction": 0.999999999999997,
+      "longest_darkness_hours": 0.0,
+      "longest_earth_blackout_hours": 0.0,
+      "transition_bracket_minutes": 5,
+      "events": 0
+    }
+  },
+  "temporal_equator_geometric_reference_minutes": {
+    "60": {
+      "samples": 48,
+      "sunlit_fraction": 0.4791666666666667,
+      "longest_darkness_hours": 25.0,
+      "transition_bracket_minutes": 60,
+      "events": 1
+    },
+    "15": {
+      "samples": 192,
+      "sunlit_fraction": 0.4973958333333333,
+      "longest_darkness_hours": 24.125,
+      "transition_bracket_minutes": 15,
+      "events": 1
+    },
+    "5": {
+      "samples": 576,
+      "sunlit_fraction": 0.4973958333333333,
+      "longest_darkness_hours": 24.125,
+      "transition_bracket_minutes": 5,
+      "events": 1
+    }
+  },
+  "temporal_difference_60_vs_5": {
+    "sunlit_fraction_abs": 2.9976021664879227e-15,
+    "earth_visible_fraction_abs": 2.9976021664879227e-15
+  },
+  "equator_sunlit_fraction_difference_60_vs_5": 0.01822916666666663,
+  "dem_coarsening_from_240m": {
+    "480": {
+      "mean_absolute_horizon_difference_deg": 1.7035080344412943,
+      "p90_absolute_horizon_difference_deg": 2.9371046415830406,
+      "max_absolute_horizon_difference_deg": 6.882218883730026,
+      "sun_center_visibility_disagreement_fraction": 0.0,
+      "earth_center_visibility_disagreement_fraction": 0.0
+    },
+    "960": {
+      "mean_absolute_horizon_difference_deg": 6.3299950247795245,
+      "p90_absolute_horizon_difference_deg": 11.292976140642267,
+      "max_absolute_horizon_difference_deg": 13.452149719013947,
+      "sun_center_visibility_disagreement_fraction": 0.0,
+      "earth_center_visibility_disagreement_fraction": 0.0
+    }
+  },
+  "limits": "Sensitivity of this site and period only. Coarsened DEMs are not independent terrain data; fine obstacles remain unresolved. Visibility comparison uses body centers, not disk fractions. No landing certification."
+}

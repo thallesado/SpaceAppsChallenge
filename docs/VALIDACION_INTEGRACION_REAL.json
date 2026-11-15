@@ -1,0 +1,214 @@
+{
+  "synthetic": false,
+  "note": "Real running API; provider-derived ephemerides may come from cache.",
+  "scenario_date_utc": "2026-11-15",
+  "upstream_source_revision": "fbe2a7b",
+  "status": {
+    "dem_ready": true,
+    "fine_dem_ready": true,
+    "ephemeris": "JPL Horizons",
+    "imagery": "NASA Moon Trek / LRO WAC",
+    "terrain": "NASA PDS LOLA LDEM_75S_240M",
+    "note": "Visibility estimates, not certification of landing safety."
+  },
+  "evaluation": {
+    "metrics": {
+      "concurrent_windows": [],
+      "longest_concurrent_hours": 0.0,
+      "sunlit_fraction": 0.0,
+      "earth_visible_fraction": 0.0,
+      "concurrent_fraction": 0.0,
+      "longest_darkness_hours": 24.0,
+      "longest_earth_blackout_hours": 24.0,
+      "sunlit_windows": [],
+      "earth_visible_windows": [],
+      "constraints_met": false
+    },
+    "horizon_source": "LOLA_MULTIRESOLUTION_20_240M",
+    "site_height_km_used": -0.718,
+    "provenance": {
+      "frame": "MOON_ME_DE421",
+      "radius_m": 1737400,
+      "method": "nearest_pixel_curved_rays_v2",
+      "time_step_minutes": 60,
+      "observer_height_m": 2,
+      "near_range_km": 5,
+      "source": "LOLA_MULTIRESOLUTION_20_240M",
+      "datasets": [
+        {
+          "id": "LDEM_75S_240M",
+          "sha256": "d031efe2611b17dfbf3c158f5e15dc04cd5719349dcbf6384bb21fd97697c490",
+          "pixel_size_m": 240.0,
+          "product_creation_time": "2017-06-15",
+          "frame": "MOON_ME_DE421",
+          "radius_m": 1737400.0,
+          "sampling": "nearest_pixel"
+        },
+        {
+          "id": "LDEM_875S_20M",
+          "sha256": "dc16bba853b22fa29e26dc26b411acc180de70478578b2c75c8e6f253f56a9d9",
+          "pixel_size_m": 20.0,
+          "product_creation_time": "2017-06-15",
+          "frame": "MOON_ME_DE421",
+          "radius_m": 1737400.0,
+          "sampling": "nearest_pixel"
+        }
+      ],
+      "ephemeris_service": "JPL Horizons",
+      "ephemeris_kernel": "Provider controlled; raw kernel not persisted in this response",
+      "temporal_interval": "[start,end)"
+    }
+  },
+  "mesh": {
+    "source": "LOLA_LDEM_875S_20M_PDS",
+    "pixel_size_m": 20.0,
+    "points": 10201
+  },
+  "slope": {
+    "site": {
+      "latitude_deg": -89.5,
+      "longitude_deg": 0.0,
+      "height_km": 0.0,
+      "label": "Polar reference"
+    },
+    "site_height_m": -705.0,
+    "cell_row": 1842,
+    "cell_col": 1906,
+    "pixel_scale_m": 240.0,
+    "ground_spacing_m": 240.0,
+    "baseline_pixels": 1,
+    "baseline_m": 240.0,
+    "slope_deg": 5.19,
+    "aspect_deg": 256.1,
+    "multiscale": [
+      {
+        "baseline_pixels": 1,
+        "baseline_m": 240.0,
+        "slope_deg": 5.19,
+        "aspect_deg": 256.1
+      },
+      {
+        "baseline_pixels": 2,
+        "baseline_m": 480.0,
+        "slope_deg": 5.72,
+        "aspect_deg": 264.7
+      },
+      {
+        "baseline_pixels": 4,
+        "baseline_m": 960.0,
+        "slope_deg": 6.8,
+        "aspect_deg": 278.0
+      }
+    ],
+    "neighborhood": {
+      "radius_m": 500.0,
+      "cells": 13,
+      "mean_deg": 5.79,
+      "p90_deg": 6.09,
+      "max_deg": 7.81,
+      "fraction_above_threshold": null
+    },
+    "threshold_deg": null,
+    "threshold_status": "not_evaluated",
+    "source": "LOLA_LDEM_75S_240M_PDS",
+    "method": "Horn 3x3 finite differences on the polar stereographic grid, scale-factor corrected",
+    "note": "Regional preliminary slope from a 240 m/pixel DEM. It does not resolve craters, boulders or slopes at lander-footprint scale, and the value depends on the baseline. The threshold is user-defined; vehicle limits depend on the lander and on how slope is measured. This is not a landing-safety assessment."
+  },
+  "search": {
+    "options": 6,
+    "unavailable": [],
+    "windows": [
+      {
+        "site": {
+          "latitude_deg": -89.5,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Polar reference"
+        },
+        "offset_days": 0,
+        "constraints_met": false,
+        "window": null
+      },
+      {
+        "site": {
+          "latitude_deg": -89.5,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Polar reference"
+        },
+        "offset_days": 1,
+        "constraints_met": false,
+        "window": null
+      },
+      {
+        "site": {
+          "latitude_deg": -89.5,
+          "longitude_deg": 0.0,
+          "height_km": 0.0,
+          "label": "Polar reference"
+        },
+        "offset_days": 2,
+        "constraints_met": false,
+        "window": null
+      },
+      {
+        "site": {
+          "latitude_deg": -89.6,
+          "longitude_deg": 20.0,
+          "height_km": 0.0,
+          "label": "Second polar reference"
+        },
+        "offset_days": 0,
+        "constraints_met": false,
+        "window": null
+      },
+      {
+        "site": {
+          "latitude_deg": -89.6,
+          "longitude_deg": 20.0,
+          "height_km": 0.0,
+          "label": "Second polar reference"
+        },
+        "offset_days": 1,
+        "constraints_met": false,
+        "window": null
+      },
+      {
+        "site": {
+          "latitude_deg": -89.6,
+          "longitude_deg": 20.0,
+          "height_km": 0.0,
+          "label": "Second polar reference"
+        },
+        "offset_days": 2,
+        "constraints_met": false,
+        "window": null
+      }
+    ]
+  },
+  "sensitivity": {
+    "complete": true,
+    "ranges": {
+      "sunlit_fraction": {
+        "min": 0.0,
+        "max": 0.0
+      },
+      "earth_visible_fraction": {
+        "min": 0.0,
+        "max": 0.0
+      },
+      "longest_concurrent_hours": {
+        "min": 0.0,
+        "max": 0.0
+      },
+      "longest_darkness_hours": {
+        "min": 24.0,
+        "max": 24.0
+      }
+    },
+    "method": "center_plus_four_cardinal_points",
+    "note": "Deterministic spatial sensitivity, not a statistical confidence interval or exhaustive neighborhood bound.",
+    "max_horizon_distance_km": 1
+  },
+  "moon_trek_catalog_layers": 336
+}

@@ -33,6 +33,11 @@ await page.getByRole('button',{name:/Seleccionar alternativa 1:/}).first().waitF
 console.log('COMPARISON',await page.getByRole('region',{name:/Resultados/}).innerText());
 await page.screenshot({path:'artifacts/comparison.png',fullPage:true});
 await page.getByRole('button',{name:/Seleccionar alternativa 1:/}).first().click();
+await page.getByRole('button',{name:'Mapa NASA',exact:true}).click();
+await page.waitForFunction(()=>Array.from(document.querySelectorAll('.local-tile-layer img')).some(i=>i.naturalWidth>0),{},{timeout:90000});
+console.log('NASA_MAP',await page.locator('.local-coverage').innerText());
+await page.screenshot({path:'artifacts/nasa-map.png',fullPage:true});
+await page.getByRole('button',{name:'Globo',exact:true}).click();
 await page.getByRole('button',{name:'Datos y método',exact:true}).click();
 console.log('SOURCES',await page.locator('.source-cards article').count());
 await page.getByRole('button',{name:'Cómo usar el explorador',exact:true}).click();await page.getByRole('dialog').waitFor();await page.keyboard.press('Escape');await page.getByRole('dialog').waitFor({state:'hidden'});

@@ -64,7 +64,7 @@ def test_catalog_sites():
     mouton = find_site("mouton")
     assert mouton is not None
     assert mouton.name == "Mons Mouton"
-    assert mouton.latitude_deg == -85.4
+    assert mouton.latitude_deg == -84.6
 
     query_res = list_sites(query="Malapert")
     assert len(query_res) == 1

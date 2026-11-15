@@ -1,0 +1,22 @@
+{
+  "kind": "Browser fault injection; failures are simulated, not NASA outages",
+  "cases": [
+    {
+      "name": "Backend unavailable: explicit error and analysis disabled",
+      "passed": true
+    },
+    {
+      "name": "Evaluation 502: no demo metrics",
+      "passed": true
+    },
+    {
+      "name": "Mesh without coverage: explicit message and terrain disabled",
+      "passed": true
+    },
+    {
+      "name": "Blender asset unavailable: explicit model error",
+      "passed": true
+    }
+  ],
+  "moonTrekRequests": 0
+}

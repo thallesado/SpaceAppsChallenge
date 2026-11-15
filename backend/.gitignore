@@ -7,3 +7,6 @@ data/*.img
 data/*.part
 data/horizons_runtime.sqlite*
 data/*.sqlite*
+data/kernels/*.bsp
+data/kernels/*.bpc
+data/kernels/*.part

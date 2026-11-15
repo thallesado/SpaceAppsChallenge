@@ -2,6 +2,7 @@ import csv
 import io
 import re
 import math
+import asyncio
 from datetime import datetime, timezone
 
 import httpx
@@ -40,8 +41,13 @@ class HorizonsClient:
     def __init__(self, client: httpx.AsyncClient, cache: EphemerisCache | None = None):
         self.client = client
         self.cache = cache
+        self._lock = asyncio.Lock()
 
-    async def positions(self, body_id: int, site: Site, start: datetime, end: datetime, step_minutes: int) -> list[tuple[datetime, float, float]]:
+    async def positions(self, body_id: int, site: Site, start: datetime, end: datetime, step_minutes: int):
+        async with self._lock:
+            return await self._positions(body_id, site, start, end, step_minutes)
+
+    async def _positions(self, body_id: int, site: Site, start: datetime, end: datetime, step_minutes: int) -> list[tuple[datetime, float, float]]:
         if self.cache is not None:
             cached = self.cache.get(
                 body_id=body_id,

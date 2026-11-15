@@ -8,10 +8,12 @@ export type Result = {
   metrics: { sunlit_fraction: number; earth_visible_fraction: number; concurrent_fraction: number; longest_concurrent_hours: number; longest_darkness_hours: number; longest_earth_blackout_hours: number; concurrent_windows: Window[]; constraints_met: boolean }
   timeline: { segments: { start_utc: string; end_utc: string; duration_hours: number; sun_visible: boolean; earth_visible: boolean }[] }
   horizon_source: string; site_height_km_used: number; precision_note: string
+  horizon_profile?: { azimuth_deg: number; elevation_deg: number; source?: string; distance_km?: number }[]
+  provenance?: Record<string, unknown>
 }
-export type Mesh = { resolution: number; points: number[][]; source: string; pixel_size_m: number }
-export type Option = { site: Point; offset_days: number; result: Result; explanation: string }
-export type SearchResult = { options: Option[]; any_feasible: boolean; criterion: string; scope: string }
+export type Mesh = { resolution: number; points: number[][]; source: string; pixel_size_m: number; grid_spacing_m?: number; radius_km?: number }
+export type Option = { site: Point; offset_days: number; result: Result; explanation: string; recommended_window?: Window | null }
+export type SearchResult = { options: Option[]; any_feasible: boolean; criterion: string; scope: string; unavailable?: { site: Point; detail: string }[] }
 const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 export const apiUrl = (path: string) => `${base}${path}`
 export async function request<T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> {

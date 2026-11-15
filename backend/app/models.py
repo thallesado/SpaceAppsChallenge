@@ -14,6 +14,8 @@ class Site(BaseModel):
 class HorizonPoint(BaseModel):
     azimuth_deg: float = Field(ge=0, lt=360)
     elevation_deg: float = Field(ge=-90, le=90)
+    source: str | None = None
+    distance_km: float | None = None
 
 
 class Constraints(BaseModel):
@@ -142,6 +144,8 @@ class ScenarioResult(BaseModel):
     timeline: Timeline
     ephemeris_source: str = "JPL Horizons"
     horizon_source: str
+    horizon_profile: list[HorizonPoint] = Field(default_factory=list)
+    provenance: dict = Field(default_factory=dict)
     site_height_km_used: float
     precision_note: str = "Windows use the reported temporal grid and estimated transition midpoints. Events shorter than that grid can be missed; partial disk exposure is reported separately."
 
@@ -216,7 +220,7 @@ class EphemerisRequest(BaseModel):
     start_utc: datetime
     end_utc: datetime
     step_minutes: int = Field(default=60, ge=15, le=1440)
-    body_id: int | None = Field(default=None, description="Optional body ID (10=Sun, 399=Earth). If omitted, returns both.")
+    body_id: Literal[10, 399] | None = Field(default=None, description="Optional body ID (10=Sun, 399=Earth). If omitted, returns both.")
 
     @field_validator("start_utc", "end_utc")
     @classmethod
@@ -224,6 +228,14 @@ class EphemerisRequest(BaseModel):
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("Date and time must include a UTC offset")
         return value.astimezone(timezone.utc)
+
+
+    @model_validator(mode="after")
+    def bounded_query(self):
+        duration = (self.end_utc - self.start_utc).total_seconds()
+        if duration <= 0 or duration > 14 * 86400 or duration / (self.step_minutes * 60) > 500:
+            raise ValueError("Use a positive interval up to 14 days and 500 steps")
+        return self
 
 
 class EphemerisPoint(BaseModel):

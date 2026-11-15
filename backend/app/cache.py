@@ -51,7 +51,7 @@ class EphemerisCache:
         end: datetime,
         step_minutes: int,
     ) -> str:
-        return f"{body_id}:{lat:.4f}:{lon:.4f}:{height_km:.3f}:{start.isoformat()}:{end.isoformat()}:{step_minutes}"
+        return f"v2:{body_id}:{lat!r}:{lon!r}:{height_km!r}:{start.isoformat()}:{end.isoformat()}:{step_minutes}"
 
     def get(
         self,

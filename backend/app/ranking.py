@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .models import ScenarioResult, Scenario
 
@@ -29,7 +29,7 @@ class ScoredSite(BaseModel):
 
 
 class RankingResponse(BaseModel):
-    best_site: str
+    best_site: str | None
     executive_summary: str
     weights_used: RankingWeights
     ranked_sites: list[ScoredSite]
@@ -38,6 +38,14 @@ class RankingResponse(BaseModel):
 class RankRequest(BaseModel):
     scenarios: list[Scenario] = Field(min_length=2, max_length=10)
     weights: RankingWeights = Field(default_factory=RankingWeights)
+
+    @model_validator(mode='after')
+    def matching_requirements(self):
+        first = self.scenarios[0]
+        for scenario in self.scenarios[1:]:
+            if (scenario.end_utc - scenario.start_utc, scenario.constraints, scenario.step_minutes, scenario.use_dem_horizon) != (first.end_utc - first.start_utc, first.constraints, first.step_minutes, first.use_dem_horizon):
+                raise ValueError('Rank with equal duration, requirements, sampling and horizon model')
+        return self
 
 
 def rank_scenarios(results: list[ScenarioResult], weights: RankingWeights) -> RankingResponse:
@@ -122,7 +130,7 @@ def rank_scenarios(results: list[ScenarioResult], weights: RankingWeights) -> Ra
         })
 
     # Sort descending by score
-    scored.sort(key=lambda x: x["score"], reverse=True)
+    scored.sort(key=lambda x: (x["constraints_met"], x["score"]), reverse=True)
 
     ranked_sites: list[ScoredSite] = []
     for rank_idx, item in enumerate(scored, start=1):
@@ -146,6 +154,7 @@ def rank_scenarios(results: list[ScenarioResult], weights: RankingWeights) -> Ra
         )
 
     best = ranked_sites[0]
+    any_met = any(row.constraints_met for row in ranked_sites)
     exec_summary = (
         f"El sitio recomendado es '{best.label}' con una puntuación de {best.score}/100. "
         f"Ofrece {best.sunlit_percent}% de luz solar y {best.earth_visible_percent}% de visibilidad directa de la Tierra, "
@@ -153,8 +162,8 @@ def rank_scenarios(results: list[ScenarioResult], weights: RankingWeights) -> Ra
     )
 
     return RankingResponse(
-        best_site=best.label,
-        executive_summary=exec_summary,
+        best_site=best.label if any_met else None,
+        executive_summary=exec_summary if any_met else 'Ninguna alternativa cumple las restricciones. Revisa las condiciones o compara otros sitios y fechas.',
         weights_used=weights,
         ranked_sites=ranked_sites,
     )

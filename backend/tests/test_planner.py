@@ -60,3 +60,67 @@ def test_dem_grid_uses_coordinates_and_source():
     assert len(grid['points']) == 81
     assert grid['points'][40] == pytest.approx([-89.0, 0.0, 100])
     assert grid['pixel_size_m'] == 240
+
+
+def test_fine_grid_matches_frontend_and_contains_observer():
+    from app.planner import terrain_grid, MeshRequest
+    from pydantic import ValidationError
+    class FineDem:
+        scale_m = 20
+        product_id = 'LDEM_875S_20M'
+        def height_m(self, lat, lon):
+            return 50
+    point = {'latitude_deg': -89.5, 'longitude_deg': 0}
+    grid = terrain_grid(FineDem(), MeshRequest(site=point, radius_km=1, resolution=101))
+    assert len(grid['points']) == 10201
+    assert grid['points'][5100] == pytest.approx([-89.5, 0, 50])
+    assert grid['pixel_size_m'] == grid['grid_spacing_m'] == 20
+    with pytest.raises(ValidationError):
+        MeshRequest(site=point, radius_km=1, resolution=100)
+
+
+def test_daily_search_reuses_ephemerides_and_returns_concrete_window():
+    class Counting(SunEarth):
+        calls = 0
+        async def positions(self, *args):
+            self.calls += 1
+            return await super().positions(*args)
+    with TestClient(app) as client:
+        upstream = Counting()
+        app.state.horizons = upstream
+        scenario = {'site': {'latitude_deg': -89.5, 'longitude_deg': 0},
+                    'start_utc': '2026-11-15T00:00:00Z', 'end_utc': '2026-11-16T00:00:00Z',
+                    'constraints': {'min_concurrent_hours': 6}}
+        response = client.post('/api/v1/scenarios/search', json={'scenario': scenario,
+            'sites': [scenario['site'], {'latitude_deg': -89.5, 'longitude_deg': 10}], 'search_days': 2})
+        assert response.status_code == 200
+        assert len(response.json()['options']) == 6
+        assert upstream.calls == 4
+        assert response.json()['options'][0]['recommended_window']['duration_hours'] == 24
+
+
+def test_search_reports_unavailable_separately():
+    from app.horizons import HorizonsError
+    class Broken:
+        async def positions(self, *args): raise HorizonsError('test unavailable')
+    with TestClient(app) as client:
+        app.state.horizons = Broken()
+        scenario = {'site': {'latitude_deg': -89.5, 'longitude_deg': 0},
+                    'start_utc': '2026-11-15T00:00:00Z', 'end_utc': '2026-11-16T00:00:00Z'}
+        data = client.post('/api/v1/scenarios/search', json={'scenario': scenario, 'sites': [scenario['site']], 'search_days': 0}).json()
+        assert data['options'] == []
+        assert data['unavailable'][0]['status'] == 502
+
+
+def test_spatial_sensitivity_has_explicit_sample_count_and_ranges():
+    with TestClient(app) as client:
+        app.state.horizons = SunEarth()
+        scenario = {'site': {'latitude_deg': -89.5, 'longitude_deg': 0},
+                    'start_utc': '2026-11-15T00:00:00Z', 'end_utc': '2026-11-15T03:00:00Z',
+                    'max_horizon_distance_km': 1}
+        response = client.post('/api/v1/scenarios/sensitivity', json={'scenario': scenario})
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert len(data['evaluated']) == 5
+        assert data['complete']
+        assert data['ranges']['sunlit_fraction']['min'] <= data['ranges']['sunlit_fraction']['max']

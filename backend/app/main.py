@@ -35,7 +35,7 @@ from .models import (
 )
 from .power import PowerSimulationRequest, PowerSimulationResult, simulate_power
 from .ranking import RankRequest, RankingResponse, rank_scenarios
-from .terrain import LolaDem, TerrainError, horizon_profile
+from .terrain import LolaDem, TerrainError, horizon_profile, fine_covers, product_manifest
 from .transitions import effective_step_minutes
 from .sources import Sources, SourceError
 from .planner import router as planner_router
@@ -52,6 +52,8 @@ async def lifespan(app: FastAPI):
     if not configured_dem.is_absolute():
         configured_dem = BACKEND_DIR / configured_dem
     app.state.dem = LolaDem(configured_dem) if configured_dem.exists() else None
+    fine_path = BACKEND_DIR / "data" / "ldem_875s_20m.img"
+    app.state.fine_dem = LolaDem(fine_path) if configured_dem == default_dem and fine_path.exists() else None
 
     # Persistent ephemeris cache
     default_cache = BACKEND_DIR / "data" / "horizons_runtime.sqlite"
@@ -65,6 +67,8 @@ async def lifespan(app: FastAPI):
         yield
     if app.state.dem is not None:
         app.state.dem.close()
+    if app.state.fine_dem is not None:
+        app.state.fine_dem.close()
 
 
 app = FastAPI(
@@ -135,10 +139,15 @@ def terrain_horizon(payload: TerrainRequest, request: Request) -> TerrainResult:
             observer_height_m=payload.observer_height_m,
             max_distance_km=payload.max_distance_km,
             azimuth_step_deg=payload.azimuth_step_deg,
+            fine_dem=request.app.state.fine_dem,
         )
     except TerrainError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return TerrainResult(site=payload.site, profile=profile, site_height_km_used=height)
+    fine_used = fine_covers(request.app.state.fine_dem, payload.site, min(5, payload.max_distance_km))
+    return TerrainResult(site=payload.site, profile=profile, site_height_km_used=height,
+        source='LOLA_MULTIRESOLUTION_20_240M' if fine_used else 'LOLA_LDEM_75S_240M_PDS',
+        pixel_scale_m=20 if fine_used else 240,
+        note='Curved terrain rays; fine near-field only with full coverage, coarse distant terrain. See per-azimuth dominant source and distance.')
 
 
 @app.get("/api/v1/sites/{site_id}/horizon", response_model=TerrainResult, tags=["Terrain"])
@@ -166,10 +175,15 @@ def get_site_horizon(
             observer_height_m=observer_height_m,
             max_distance_km=max_distance_km,
             azimuth_step_deg=azimuth_step_deg,
+            fine_dem=request.app.state.fine_dem,
         )
     except TerrainError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return TerrainResult(site=site_model, profile=profile, site_height_km_used=height)
+    fine_used = fine_covers(request.app.state.fine_dem, site_model, min(5, max_distance_km))
+    return TerrainResult(site=site_model, profile=profile, site_height_km_used=height,
+        source='LOLA_MULTIRESOLUTION_20_240M' if fine_used else 'LOLA_LDEM_75S_240M_PDS',
+        pixel_scale_m=20 if fine_used else 240,
+        note='Curved terrain rays; fine near-field only with full coverage, coarse distant terrain. See per-azimuth dominant source and distance.')
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +221,7 @@ async def get_ephemeris(payload: EphemerisRequest, request: Request) -> Ephemeri
 # ---------------------------------------------------------------------------
 
 
-async def evaluate(scenario: Scenario, horizons: HorizonsClient, dem: LolaDem | None = None) -> ScenarioResult:
+async def evaluate(scenario: Scenario, horizons: HorizonsClient, dem: LolaDem | None = None, fine_dem: LolaDem | None = None) -> ScenarioResult:
     try:
         effective_step = effective_step_minutes(scenario)
     except ValueError as exc:
@@ -225,11 +239,12 @@ async def evaluate(scenario: Scenario, horizons: HorizonsClient, dem: LolaDem | 
                 site,
                 observer_height_m=scenario.observer_height_m,
                 max_distance_km=scenario.max_horizon_distance_km,
+                fine_dem=fine_dem,
             )
         except TerrainError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         site = site.model_copy(update={"height_km": height_km})
-        source = "LOLA_LDEM_75S_240M_PDS"
+        source = "LOLA_MULTIRESOLUTION_20_240M" if fine_covers(fine_dem, scenario.site, min(5, scenario.max_horizon_distance_km)) else "LOLA_LDEM_75S_240M_PDS"
     try:
         sun = await horizons.positions(10, site, scenario.start_utc, scenario.end_utc, effective_step)
         earth = await horizons.positions(399, site, scenario.start_utc, scenario.end_utc, effective_step)
@@ -272,18 +287,20 @@ async def evaluate(scenario: Scenario, horizons: HorizonsClient, dem: LolaDem | 
         metrics=analyze(scenario, timeline),
         timeline=timeline,
         horizon_source=source,
+        horizon_profile=profile or [],
+        provenance={"frame": "MOON_ME_DE421", "radius_m": 1737400, "method": "nearest_pixel_curved_rays_v2", "time_step_minutes": effective_step, "observer_height_m": scenario.observer_height_m, "near_range_km": min(5, scenario.max_horizon_distance_km) if fine_covers(fine_dem, scenario.site, min(5, scenario.max_horizon_distance_km)) else 0, "source": source, "datasets": [product_manifest(dem)] + ([product_manifest(fine_dem)] if fine_covers(fine_dem, scenario.site, min(5, scenario.max_horizon_distance_km)) else []) if dem is not None else [], "ephemeris_service": "JPL Horizons", "ephemeris_kernel": "Provider controlled; raw kernel not persisted in this response", "temporal_interval": "[start,end)"},
         site_height_km_used=site.height_km,
     )
 
 
 @app.post("/api/v1/scenarios/evaluate", response_model=ScenarioResult, tags=["Scenarios"])
 async def evaluate_scenario(scenario: Scenario, request: Request) -> ScenarioResult:
-    return await evaluate(scenario, request.app.state.horizons, request.app.state.dem)
+    return await evaluate(scenario, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem)
 
 
 @app.post("/api/v1/scenarios/compare", response_model=list[ScenarioResult], tags=["Scenarios"])
 async def compare_scenarios(payload: CompareRequest, request: Request) -> list[ScenarioResult]:
-    return [await evaluate(scenario, request.app.state.horizons, request.app.state.dem) for scenario in payload.scenarios]
+    return [await evaluate(scenario, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem) for scenario in payload.scenarios]
 
 
 # ---------------------------------------------------------------------------
@@ -293,7 +310,7 @@ async def compare_scenarios(payload: CompareRequest, request: Request) -> list[S
 
 @app.post("/api/v1/scenarios/rank", response_model=RankingResponse, tags=["Scenarios"])
 async def rank_evaluated_scenarios(payload: RankRequest, request: Request) -> RankingResponse:
-    results = [await evaluate(scenario, request.app.state.horizons, request.app.state.dem) for scenario in payload.scenarios]
+    results = [await evaluate(scenario, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem) for scenario in payload.scenarios]
     return rank_scenarios(results, payload.weights)
 
 
@@ -339,8 +356,8 @@ async def evaluate_mission_delta(payload: MissionDeltaRequest, request: Request)
         }
     )
 
-    baseline_result = await evaluate(base_sc, request.app.state.horizons, request.app.state.dem)
-    rescheduled_result = await evaluate(rescheduled_sc, request.app.state.horizons, request.app.state.dem)
+    baseline_result = await evaluate(base_sc, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem)
+    rescheduled_result = await evaluate(rescheduled_sc, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem)
 
     return compute_mission_delta(
         baseline_result=baseline_result,
@@ -375,7 +392,7 @@ def copilot_parse_constraints(payload: dict[str, str]) -> Constraints:
 
 @app.post("/api/v1/simulation/power", response_model=PowerSimulationResult, tags=["Simulation"])
 async def simulate_mission_power(payload: PowerSimulationRequest, request: Request) -> PowerSimulationResult:
-    result = await evaluate(payload.scenario, request.app.state.horizons, request.app.state.dem)
+    result = await evaluate(payload.scenario, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem)
     return simulate_power(result, payload.config)
 
 
@@ -386,7 +403,7 @@ async def simulate_mission_power(payload: PowerSimulationRequest, request: Reque
 
 @app.post("/api/v1/scenarios/export/csv", tags=["Export"])
 async def export_scenario_csv(scenario: Scenario, request: Request) -> Response:
-    result = await evaluate(scenario, request.app.state.horizons, request.app.state.dem)
+    result = await evaluate(scenario, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem)
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
@@ -450,7 +467,7 @@ async def analyze_legacy(payload: LegacyAnalyzeRequest, request: Request) -> Leg
         max_horizon_distance_km=payload.max_horizon_distance_km,
         constraints=Constraints(min_earth_elevation_deg=payload.min_earth_elevation_deg),
     )
-    result = await evaluate(scenario, request.app.state.horizons, request.app.state.dem)
+    result = await evaluate(scenario, request.app.state.horizons, request.app.state.dem, request.app.state.fine_dem)
     legacy_samples = [
         LegacySample(
             hour=int(round((s.time_utc - payload.start_time).total_seconds() / 3600.0)),
@@ -507,6 +524,8 @@ def clear_cache(request: Request) -> dict[str, int]:
 
 
 app.include_router(planner_router)
+from .generative import router as generative_router
+app.include_router(generative_router)
 
 @app.exception_handler(SourceError)
 async def nasa_error(request: Request, exc: SourceError):

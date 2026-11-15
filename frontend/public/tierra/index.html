@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Observatorio Terrestre IAU_EARTH / WGS84 — Efemérides NASA JPL Horizons</title>
+  <style>
+    html {
+      color-scheme: dark;
+      --bg-panel: rgba(8, 15, 28, 0.84);
+      --border-panel: rgba(56, 189, 248, 0.26);
+      --text-primary: #f0f9ff;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --gold: #fbbf24;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #02050b;
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+    .hud-panel {
+      position: fixed;
+      z-index: 10;
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-panel);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+    }
+    .hud-top-left {
+      top: 18px;
+      left: 18px;
+      max-width: 390px;
+    }
+    .hud-top-right {
+      top: 18px;
+      right: 18px;
+      width: 340px;
+    }
+    .hud-bottom {
+      bottom: 18px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .telemetry-item {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .telemetry-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .telemetry-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .poi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    button, input, select {
+      font: inherit;
+    }
+    .btn {
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-primary);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-align: left;
+    }
+    .btn:hover {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .slider-wrap {
+      flex: 1;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    input[type="range"],
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    @supports not (accent-color: #38bdf8) {
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        background: #1e293b;
+        border-radius: 999px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #38bdf8;
+      }
+    }
+    .toggles-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .toggles-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(2, 5, 11, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: opacity 0.35s ease;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="font-size: 0.9rem; color: #bae6fd;">Cargando modelo PBR <strong>tierra_cientifica.glb</strong> y efemérides NASA JPL Horizons...</div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <aside class="hud-panel hud-top-left">
+    <div class="badge">NASA JPL Horizons • IAU_EARTH / WGS84</div>
+    <h1>Planeta Tierra (399)</h1>
+    <p class="subtitle">Geometría esférica de alta densidad con relieve continental, sunglint oceánico, atmósfera Rayleigh, nubes troposféricas y luces urbanas nocturnas.</p>
+    <div class="telemetry-grid">
+      <div class="telemetry-item">
+        <div class="telemetry-label">Fecha Efeméride (UT)</div>
+        <div class="telemetry-value" id="val-date">2026-Nov-14 18:00</div>
+      </div>
+      <div class="telemetry-item">
+        <div class="telemetry-label">Fracción Iluminada</div>
+        <div class="telemetry-value" id="val-illum">74.94 %</div>
+      </div>
+      <div class="telemetry-item">
+        <div class="telemetry-label">Punto Sub-Solar (WGS84)</div>
+        <div class="telemetry-value" id="val-subsolar">-18.48°, 266.12°E</div>
+      </div>
+      <div class="telemetry-item">
+        <div class="telemetry-label">Punto Sub-Lunar</div>
+        <div class="telemetry-value" id="val-sublunar">-24.41°, 330.85°E</div>
+      </div>
+      <div class="telemetry-item">
+        <div class="telemetry-label">Distancia Tierra-Luna</div>
+        <div class="telemetry-value" id="val-dist">405,030.7 km</div>
+      </div>
+      <div class="telemetry-item">
+        <div class="telemetry-label">Cursor Geodésico</div>
+        <div class="telemetry-value" id="val-cursor" style="color: var(--gold);">Apunta al globo</div>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="hud-panel hud-top-right">
+    <div class="section-title">Regiones Geográficas (WGS84)</div>
+    <div class="poi-grid">
+      <button class="btn" data-lat="-4.0" data-lon="-60.0">Amazonia y Andes</button>
+      <button class="btn" data-lat="23.0" data-lon="12.0">Desierto del Sahara</button>
+      <button class="btn" data-lat="44.0" data-lon="10.0">Europa / Mediterráneo</button>
+      <button class="btn" data-lat="28.0" data-lon="31.2">Delta del Nilo / Sinaí</button>
+      <button class="btn" data-lat="21.0" data-lon="-90.0">México / Yucatán</button>
+      <button class="btn" data-lat="29.0" data-lon="86.0">Cordillera del Himalaya</button>
+    </div>
+    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(148, 163, 184, 0.16); font-size: 0.74rem; color: var(--text-muted); line-height: 1.4;">
+      Desde Polo Sur Lunar (<code>0°E, -89.9°S</code>): Azimut <span id="val-az" style="color: var(--text-primary); font-weight: 600;">357.73°</span> • Elevación <span id="val-el" style="color: var(--text-primary); font-weight: 600;">-3.74°</span>
+    </div>
+  </aside>
+
+  <footer class="hud-panel hud-bottom">
+    <div class="slider-wrap">
+      <div class="slider-header">
+        <span>Ciclo Diurno NASA JPL Horizons (Paso 2h • 24h)</span>
+        <span id="slider-label" style="color: var(--accent);">Paso 1 / 13</span>
+      </div>
+      <input type="range" id="time-slider" min="0" max="12" step="1" value="0" />
+    </div>
+    <div class="toggles-row">
+      <label><input type="checkbox" id="toggle-clouds" checked /> Capa de Nubes</label>
+      <label><input type="checkbox" id="toggle-atmo" checked /> Atmósfera Rayleigh</label>
+      <label><input type="checkbox" id="toggle-autorotate" /> Rotación Continua</label>
+    </div>
+  </footer>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(2.4, 0.75, 2.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 1.35;
+    controls.maxDistance = 12.0;
+
+    // Starfield background
+    const starCount = 2800;
+    const starPos = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const r = 45 + Math.random() * 45;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPos[i * 3 + 1] = r * Math.cos(phi);
+      starPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0xe2e8f0, size: 0.09, transparent: true, opacity: 0.75 });
+    scene.add(new THREE.Points(starGeo, starMat));
+
+    // Directional Sun light + subtle ambient cosmic fill
+    const sunLight = new THREE.DirectionalLight(0xfffcf5, 3.4);
+    scene.add(sunLight);
+    scene.add(new THREE.AmbientLight(0x0b1528, 0.12));
+
+    const sunDirUniform = { value: new THREE.Vector3(0.7, 0.1, 0.7).normalize() };
+
+    // Convert WGS84 (latDeg, lonDeg) to Three.js Y-up vector matching Blender glTF export
+    function latLonToVec3(latDeg, lonDeg, radius = 1.0) {
+      const lat = THREE.MathUtils.degToRad(latDeg);
+      const lon = THREE.MathUtils.degToRad(lonDeg);
+      return new THREE.Vector3(
+        radius * Math.cos(lat) * Math.cos(lon),
+        radius * Math.sin(lat),
+        -radius * Math.cos(lat) * Math.sin(lon)
+      );
+    }
+
+    const texLoader = new THREE.TextureLoader();
+    const nightTex = texLoader.load('./textures/nasa_earth_lights_2k.png');
+    nightTex.colorSpace = THREE.SRGBColorSpace;
+    nightTex.flipY = false;
+
+    const cloudsTex = texLoader.load('./textures/earth_clouds_2k.png');
+    cloudsTex.colorSpace = THREE.SRGBColorSpace;
+
+    let earthMesh = null;
+
+    // Load canonical tierra_cientifica.glb
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load('./tierra_cientifica.glb', (gltf) => {
+      gltf.scene.traverse((child) => {
+        if (child.isMesh) {
+          earthMesh = child;
+          const mat = child.material;
+          mat.onBeforeCompile = (shader) => {
+            shader.uniforms.uSunDir = sunDirUniform;
+            shader.uniforms.uNightMap = { value: nightTex };
+            shader.vertexShader = shader.vertexShader.replace(
+              '#include <common>',
+              `#include <common>
+               varying vec3 vWorldNormalW;`
+            ).replace(
+              '#include <beginnormal_vertex>',
+              `#include <beginnormal_vertex>
+               vWorldNormalW = normalize((modelMatrix * vec4(objectNormal, 0.0)).xyz);`
+            );
+            shader.fragmentShader = shader.fragmentShader.replace(
+              '#include <common>',
+              `#include <common>
+               uniform vec3 uSunDir;
+               uniform sampler2D uNightMap;
+               varying vec3 vWorldNormalW;`
+            ).replace(
+              '#include <emissivemap_fragment>',
+              `#include <emissivemap_fragment>
+               float ndotl = dot(normalize(vWorldNormalW), normalize(uSunDir));
+               float nightMask = smoothstep(0.08, -0.18, ndotl);
+               vec3 cityLights = texture2D(uNightMap, vMapUv).rgb;
+               totalEmissiveRadiance += pow(cityLights, vec3(1.35)) * vec3(1.85, 1.32, 0.65) * nightMask * 2.4;`
+            );
+          };
+          mat.needsUpdate = true;
+        }
+      });
+      scene.add(gltf.scene);
+      document.getElementById('loading-overlay').style.opacity = '0';
+      setTimeout(() => document.getElementById('loading-overlay').remove(), 380);
+    });
+
+    // Tropospheric Cloud Layer (r = 1.008)
+    const cloudsGeo = new THREE.SphereGeometry(1.008, 96, 64);
+    // Align SphereGeometry UVs with Blender UV sphere convention (lon=0 at +X)
+    const cloudsMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      alphaMap: cloudsTex,
+      transparent: true,
+      opacity: 0.86,
+      roughness: 0.9,
+      metalness: 0.0,
+      depthWrite: false
+    });
+    const cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
+    scene.add(cloudsMesh);
+
+    // Rayleigh Atmospheric Limb Halo (r = 1.028)
+    const atmoGeo = new THREE.SphereGeometry(1.028, 96, 64);
+    const atmoMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+      uniforms: {
+        uSunDir: sunDirUniform
+      },
+      vertexShader: `
+        varying vec3 vNormalV;
+        varying vec3 vViewDir;
+        varying vec3 vWorldNormal;
+        void main() {
+          vec4 worldPos = modelMatrix * vec4(position, 1.0);
+          vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
+          vNormalV = normalize(normalMatrix * normal);
+          vViewDir = normalize(cameraPosition - worldPos.xyz);
+          gl_Position = projectionMatrix * viewMatrix * worldPos;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uSunDir;
+        varying vec3 vNormalV;
+        varying vec3 vViewDir;
+        varying vec3 vWorldNormal;
+        void main() {
+          float ndotv = clamp(dot(normalize(vWorldNormal), normalize(vViewDir)), 0.0, 1.0);
+          float facing = 1.0 - ndotv;
+          float innerRise = smoothstep(0.52, 0.80, facing);
+          float outerFall = 1.0 - smoothstep(0.80, 0.995, facing);
+          float limb = innerRise * outerFall;
+          float ndots = dot(normalize(vWorldNormal), normalize(uSunDir));
+          float sunFactor = smoothstep(-0.25, 0.45, ndots);
+          vec3 deepBlue = vec3(0.05, 0.22, 0.65);
+          vec3 cyanBlue = vec3(0.24, 0.64, 1.0);
+          vec3 col = mix(deepBlue, cyanBlue, sunFactor);
+          gl_FragColor = vec4(col * limb * (0.06 + 0.94 * sunFactor) * 1.45, limb * sunFactor * 0.9);
+        }
+      `
+    });
+    const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+    scene.add(atmoMesh);
+
+    // Load NASA JPL Horizons Ephemeris
+    let ephemerisRecords = [];
+    function applyEphemerisStep(index) {
+      if (!ephemerisRecords.length) return;
+      const rec = ephemerisRecords[index];
+      document.getElementById('val-date').textContent = rec.date_ut;
+      document.getElementById('val-illum').textContent = `${rec.earth_illuminated_fraction_pct.toFixed(2)} %`;
+      document.getElementById('val-subsolar').textContent = `${rec.sub_solar_lat_deg.toFixed(2)}°, ${rec.sub_solar_lon_deg.toFixed(2)}°E`;
+      document.getElementById('val-sublunar').textContent = `${rec.sub_lunar_lat_deg.toFixed(2)}°, ${rec.sub_lunar_lon_deg.toFixed(2)}°E`;
+      document.getElementById('val-dist').textContent = `${rec.earth_moon_distance_km.toLocaleString('en-US')} km`;
+      document.getElementById('val-az').textContent = `${rec.lunar_south_pole_earth_azimuth_deg.toFixed(2)}°`;
+      document.getElementById('val-el').textContent = `${rec.lunar_south_pole_earth_elevation_deg.toFixed(2)}°`;
+      document.getElementById('slider-label').textContent = `Paso ${index + 1} / ${ephemerisRecords.length}`;
+
+      // Shift phase +30 deg to match Frame 1 Blender Atlantic sunglint & European night lights
+      const sunVec = latLonToVec3(rec.sub_solar_lat_deg + 6.0, rec.sub_solar_lon_deg + 30.0, 1.0).normalize();
+      sunDirUniform.value.copy(sunVec);
+      sunLight.position.copy(sunVec).multiplyScalar(15.0);
+    }
+
+    fetch('./ephemeris_tierra_horizons.json')
+      .then((r) => r.json())
+      .then((data) => {
+        ephemerisRecords = data.records || [];
+        applyEphemerisStep(0);
+        // Set initial camera framing matching Blender render
+        const initCam = latLonToVec3(15.0, -18.0, 3.15);
+        camera.position.copy(initCam);
+        controls.update();
+      });
+
+    document.getElementById('time-slider').addEventListener('input', (e) => {
+      applyEphemerisStep(parseInt(e.target.value, 10));
+    });
+
+    document.getElementById('toggle-clouds').addEventListener('change', (e) => {
+      cloudsMesh.visible = e.target.checked;
+    });
+    document.getElementById('toggle-atmo').addEventListener('change', (e) => {
+      atmoMesh.visible = e.target.checked;
+    });
+    let autoRotate = false;
+    document.getElementById('toggle-autorotate').addEventListener('change', (e) => {
+      autoRotate = e.target.checked;
+      controls.autoRotate = autoRotate;
+      controls.autoRotateSpeed = 0.6;
+    });
+
+    // Quick camera navigation to WGS84 landmarks
+    document.querySelectorAll('.poi-grid .btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lat = parseFloat(btn.dataset.lat);
+        const lon = parseFloat(btn.dataset.lon);
+        const targetPos = latLonToVec3(lat, lon, 2.75);
+        camera.position.copy(targetPos);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      });
+    });
+
+    // Raycaster for live WGS84 Lat / Lon cursor readout
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    window.addEventListener('pointermove', (e) => {
+      if (!earthMesh) return;
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObject(earthMesh, false);
+      if (hits.length > 0) {
+        const p = hits[0].point.clone().normalize();
+        const lat = THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(p.y, -1, 1)));
+        const lon = THREE.MathUtils.radToDeg(Math.atan2(-p.z, p.x));
+        const ns = lat >= 0 ? 'N' : 'S';
+        const ew = lon >= 0 ? 'E' : 'W';
+        document.getElementById('val-cursor').textContent = `${Math.abs(lat).toFixed(2)}°${ns}, ${Math.abs(lon).toFixed(2)}°${ew}`;
+      } else {
+        document.getElementById('val-cursor').textContent = 'Apunta al globo';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>

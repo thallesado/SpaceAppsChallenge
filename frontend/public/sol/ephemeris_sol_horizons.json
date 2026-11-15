@@ -1,0 +1,153 @@
+{
+  "source": "NASA/JPL Solar System Dynamics - Horizons API (Target: 10 Sun)",
+  "reference_frame": "IAU Heliographic Carrington (IAU_SUN)",
+  "sidereal_rotation_period_days": 25.38,
+  "synodic_rotation_period_days": 27.2753,
+  "solar_radius_km": 695700.0,
+  "records": [
+    {
+      "date_ut": "2026-Nov-14 22:00",
+      "carrington_sub_obs_lon_deg": 61.958961,
+      "heliographic_b0_lat_deg": 2.892777,
+      "solar_north_pole_pa_deg": 21.4219,
+      "earth_sun_distance_au": 0.989331,
+      "earth_sun_distance_km": 148001880.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 115.449024,
+      "lunar_south_pole_sun_elevation_deg": 1.513444,
+      "apparent_angular_diameter_arcsec": 1941.65
+    },
+    {
+      "date_ut": "2026-Nov-15 22:00",
+      "carrington_sub_obs_lon_deg": 48.776155,
+      "heliographic_b0_lat_deg": 2.775612,
+      "solar_north_pole_pa_deg": 21.1446,
+      "earth_sun_distance_au": 0.989105,
+      "earth_sun_distance_km": 147967933.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 103.268459,
+      "lunar_south_pole_sun_elevation_deg": 1.532359,
+      "apparent_angular_diameter_arcsec": 1941.164
+    },
+    {
+      "date_ut": "2026-Nov-16 22:00",
+      "carrington_sub_obs_lon_deg": 35.593525,
+      "heliographic_b0_lat_deg": 2.657554,
+      "solar_north_pole_pa_deg": 20.86,
+      "earth_sun_distance_au": 0.98888,
+      "earth_sun_distance_km": 147934413.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 91.094166,
+      "lunar_south_pole_sun_elevation_deg": 1.551573,
+      "apparent_angular_diameter_arcsec": 1940.612
+    },
+    {
+      "date_ut": "2026-Nov-17 22:00",
+      "carrington_sub_obs_lon_deg": 22.411066,
+      "heliographic_b0_lat_deg": 2.53864,
+      "solar_north_pole_pa_deg": 20.568,
+      "earth_sun_distance_au": 0.98866,
+      "earth_sun_distance_km": 147901365.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 78.926508,
+      "lunar_south_pole_sun_elevation_deg": 1.570309,
+      "apparent_angular_diameter_arcsec": 1940.03
+    },
+    {
+      "date_ut": "2026-Nov-18 22:00",
+      "carrington_sub_obs_lon_deg": 9.228777,
+      "heliographic_b0_lat_deg": 2.418909,
+      "solar_north_pole_pa_deg": 20.2687,
+      "earth_sun_distance_au": 0.988442,
+      "earth_sun_distance_km": 147868837.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 66.765673,
+      "lunar_south_pole_sun_elevation_deg": 1.587717,
+      "apparent_angular_diameter_arcsec": 1939.458
+    },
+    {
+      "date_ut": "2026-Nov-19 22:00",
+      "carrington_sub_obs_lon_deg": 356.04666,
+      "heliographic_b0_lat_deg": 2.2984,
+      "solar_north_pole_pa_deg": 19.9622,
+      "earth_sun_distance_au": 0.988228,
+      "earth_sun_distance_km": 147836878.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 54.611628,
+      "lunar_south_pole_sun_elevation_deg": 1.602903,
+      "apparent_angular_diameter_arcsec": 1938.938
+    },
+    {
+      "date_ut": "2026-Nov-20 22:00",
+      "carrington_sub_obs_lon_deg": 342.86472,
+      "heliographic_b0_lat_deg": 2.177151,
+      "solar_north_pole_pa_deg": 19.6485,
+      "earth_sun_distance_au": 0.988019,
+      "earth_sun_distance_km": 147805540.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 42.464081,
+      "lunar_south_pole_sun_elevation_deg": 1.614964,
+      "apparent_angular_diameter_arcsec": 1938.514
+    },
+    {
+      "date_ut": "2026-Nov-21 22:00",
+      "carrington_sub_obs_lon_deg": 329.682966,
+      "heliographic_b0_lat_deg": 2.0552,
+      "solar_north_pole_pa_deg": 19.3278,
+      "earth_sun_distance_au": 0.987814,
+      "earth_sun_distance_km": 147774874.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 30.322419,
+      "lunar_south_pole_sun_elevation_deg": 1.62305,
+      "apparent_angular_diameter_arcsec": 1938.229
+    },
+    {
+      "date_ut": "2026-Nov-22 22:00",
+      "carrington_sub_obs_lon_deg": 316.501411,
+      "heliographic_b0_lat_deg": 1.932584,
+      "solar_north_pole_pa_deg": 19.0001,
+      "earth_sun_distance_au": 0.987614,
+      "earth_sun_distance_km": 147744929.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 18.185665,
+      "lunar_south_pole_sun_elevation_deg": 1.626434,
+      "apparent_angular_diameter_arcsec": 1938.124
+    },
+    {
+      "date_ut": "2026-Nov-23 22:00",
+      "carrington_sub_obs_lon_deg": 303.320072,
+      "heliographic_b0_lat_deg": 1.809341,
+      "solar_north_pole_pa_deg": 18.6655,
+      "earth_sun_distance_au": 0.987419,
+      "earth_sun_distance_km": 147715747.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 6.05247,
+      "lunar_south_pole_sun_elevation_deg": 1.624603,
+      "apparent_angular_diameter_arcsec": 1938.235
+    },
+    {
+      "date_ut": "2026-Nov-24 22:00",
+      "carrington_sub_obs_lon_deg": 290.138972,
+      "heliographic_b0_lat_deg": 1.685507,
+      "solar_north_pole_pa_deg": 18.3241,
+      "earth_sun_distance_au": 0.987229,
+      "earth_sun_distance_km": 147687358.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 353.921153,
+      "lunar_south_pole_sun_elevation_deg": 1.617348,
+      "apparent_angular_diameter_arcsec": 1938.583
+    },
+    {
+      "date_ut": "2026-Nov-25 22:00",
+      "carrington_sub_obs_lon_deg": 276.958133,
+      "heliographic_b0_lat_deg": 1.561118,
+      "solar_north_pole_pa_deg": 17.976,
+      "earth_sun_distance_au": 0.987045,
+      "earth_sun_distance_km": 147659779.0,
+      "photosphere_effective_temp_k": 5772,
+      "lunar_south_pole_sun_azimuth_deg": 341.789827,
+      "lunar_south_pole_sun_elevation_deg": 1.604821,
+      "apparent_angular_diameter_arcsec": 1939.175
+    }
+  ]
+}

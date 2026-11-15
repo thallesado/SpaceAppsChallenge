@@ -1,0 +1,59 @@
+{
+  "source": "NASA PDS LOLA LDEM_75S_240M and LDEM_875S_20M",
+  "sha256": {
+    "ldem_75s_240m.img": "d031efe2611b17dfbf3c158f5e15dc04cd5719349dcbf6384bb21fd97697c490",
+    "ldem_875s_20m.img": "dc16bba853b22fa29e26dc26b411acc180de70478578b2c75c8e6f253f56a9d9"
+  },
+  "coverage_20m": "South pole to 87.5 degrees south; sampled sites lie within coverage",
+  "pixel_scale_m": [
+    240,
+    20
+  ],
+  "horizon_range_km": 5,
+  "horizon_azimuth_step_deg": 5,
+  "sites": [
+    {
+      "site": "de Gerlache sample",
+      "latitude_deg": -88.3,
+      "longitude_deg": -59.5,
+      "height_240m_m": -83.5,
+      "height_20m_m": -55.0,
+      "absolute_height_difference_m": 28.5,
+      "slope_240m_dem_deg": 11.429581086515162,
+      "slope_20m_dem_at_240m_baseline_deg": 11.739292886293109,
+      "slope_20m_dem_at_20m_baseline_deg": 11.078295113098129,
+      "horizon_mean_absolute_difference_deg": 11.118182256062731,
+      "horizon_p90_absolute_difference_deg": 18.497392453487745,
+      "horizon_max_absolute_difference_deg": 22.312898779141815
+    },
+    {
+      "site": "polar reference",
+      "latitude_deg": -89.0,
+      "longitude_deg": 120.0,
+      "height_240m_m": 1066.5,
+      "height_20m_m": 1052.0,
+      "absolute_height_difference_m": 14.5,
+      "slope_240m_dem_deg": 9.78953671399324,
+      "slope_20m_dem_at_240m_baseline_deg": 9.710207822698145,
+      "slope_20m_dem_at_20m_baseline_deg": 10.416499122936045,
+      "horizon_mean_absolute_difference_deg": 1.2432890482453822,
+      "horizon_p90_absolute_difference_deg": 3.2200509257586454,
+      "horizon_max_absolute_difference_deg": 4.516210668305481
+    },
+    {
+      "site": "outer coverage sample",
+      "latitude_deg": -87.8,
+      "longitude_deg": 20.0,
+      "height_240m_m": -990.0,
+      "height_20m_m": -980.0,
+      "absolute_height_difference_m": 10.0,
+      "slope_240m_dem_deg": 7.289242454313446,
+      "slope_20m_dem_at_240m_baseline_deg": 6.877783707347922,
+      "slope_20m_dem_at_20m_baseline_deg": 6.953452789524173,
+      "horizon_mean_absolute_difference_deg": 4.432066704437531,
+      "horizon_p90_absolute_difference_deg": 8.032962642562865,
+      "horizon_max_absolute_difference_deg": 9.876887404970109
+    }
+  ],
+  "limit": "Both grids derive from LOLA, with distinct resolution/interpolation. No independent terrain survey. The 20 m grid does not resolve lander-footprint hazards or certify landing safety."
+}

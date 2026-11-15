@@ -1,0 +1,21 @@
+{
+  "revision": "257c28743cb3fb269b46bd006e47f1aec8811795",
+  "review_context_date": "2026-11-14",
+  "review_context_timezone": "America/La_Paz",
+  "backend_pytest": {"passed": 33, "warnings": 1},
+  "frontend_build": {"passed": true, "javascript_main_kb_uncompressed": 943.27, "bundle_size_warning": true},
+  "browser": {
+    "engine": "Chromium headless with WebGL",
+    "passed": true,
+    "model_loaded": "Modelo Blender MOON_ME · texturas integradas",
+    "page_errors": [],
+    "mobile_horizontal_overflow": false,
+    "comparison_options": 6,
+    "comparison_constraints_met": 3,
+    "selected_start_utc": "2026-11-15T00:00:00Z",
+    "source_note": "Backend API using Horizons/LOLA-derived results; cache allowed. Not an independent scientific validation.",
+    "does_not_verify": ["physical mobile device", "FPS", "GLB datum alignment", "independent window accuracy"]
+  },
+  "production_code_modified_for_review": false,
+  "reproductions": "auditoria-257c287.json"
+}

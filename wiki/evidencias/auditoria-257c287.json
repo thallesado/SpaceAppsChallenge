@@ -1,0 +1,62 @@
+{
+  "revision": "257c28743cb3fb269b46bd006e47f1aec8811795",
+  "method": "Synthetic bounded cases and repository inspection; no independent scientific validation.",
+  "power_refinement": {
+    "actual_period_hours": 2,
+    "samples": 24,
+    "expected_consumed_kwh": 0.2,
+    "observed_consumed_kwh": 2.4,
+    "factor": 11.999999999999998
+  },
+  "cache_spatial_collision": {
+    "latitudes": [
+      -89.50001,
+      -89.50002
+    ],
+    "same_key": true
+  },
+  "ephemeris_invalid_request": {
+    "status": 200,
+    "body": {
+      "site": {
+        "latitude_deg": -89.0,
+        "longitude_deg": 0.0,
+        "height_km": 0.0,
+        "label": null
+      },
+      "start_utc": "2026-11-15T00:00:00Z",
+      "end_utc": "2026-11-14T00:00:00Z",
+      "step_minutes": 60,
+      "source": "JPL Horizons",
+      "sun": null,
+      "earth": null
+    }
+  },
+  "ranking_feasibility": [
+    {
+      "label": "Violates darkness",
+      "score": 63.8,
+      "constraints_met": false
+    },
+    {
+      "label": "Meets constraints",
+      "score": 57.5,
+      "constraints_met": true
+    }
+  ],
+  "model": {
+    "sha256": "4e529dfff4f3f96b745b7e8d9e5e283514028f9f4aa2d2f939261ecc8242b709",
+    "bytes": 10902988,
+    "asset": {
+      "generator": "Khronos glTF Blender I/O v5.2.40",
+      "version": "2.0"
+    },
+    "extras": null,
+    "selected_marker_offset_km": 3.4748,
+    "physics_observer_height_m": 2
+  },
+  "handoff_files": {
+    "dem20_files": [],
+    "json_in_docs": []
+  }
+}

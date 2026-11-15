@@ -51,8 +51,6 @@ def simulate_power(result: ScenarioResult, config: PowerConfig) -> PowerSimulati
         raise ValueError("No samples available to simulate power profile")
 
     # Time step delta
-    step_minutes = result.scenario.step_minutes
-    dt_hours = step_minutes / 60.0
 
     current_wh = config.battery_capacity_wh * (config.initial_soc_percent / 100.0)
     min_wh = current_wh
@@ -63,7 +61,11 @@ def simulate_power(result: ScenarioResult, config: PowerConfig) -> PowerSimulati
 
     steps: list[PowerStep] = []
 
-    for s in samples:
+    for index, s in enumerate(samples):
+        until = samples[index + 1].time_utc if index + 1 < len(samples) else result.scenario.end_utc
+        dt_hours = (until - s.time_utc).total_seconds() / 3600
+        if dt_hours <= 0:
+            raise ValueError("Power samples must be strictly increasing")
         # Solar elevation angle
         el_deg = s.sun.elevation_deg
         disk_frac = getattr(s.sun, "disk_fraction", 1.0 if s.sun.visible else 0.0)

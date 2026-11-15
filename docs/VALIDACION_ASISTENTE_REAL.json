@@ -1,0 +1,94 @@
+{
+  "provider": "Live authenticated Gemini",
+  "mocked": false,
+  "cases": [
+    {
+      "name": "coordinates_and_thresholds",
+      "passed": true,
+      "plan": {
+        "start_date": "2026-11-15",
+        "duration_days": 1,
+        "search_days": 0,
+        "site_ids": [],
+        "coordinates": [
+          {
+            "latitude_deg": -89.5,
+            "longitude_deg": 0.0,
+            "height_km": 0.0,
+            "label": "Punto solicitado"
+          }
+        ],
+        "constraints": {
+          "min_concurrent_hours": 4.0,
+          "min_sunlit_fraction": 0.3,
+          "min_earth_visible_fraction": 0.2,
+          "max_darkness_hours": 12.0,
+          "max_earth_blackout_hours": null,
+          "min_earth_elevation_deg": 0.0
+        },
+        "assumptions": [
+          "Se utiliza la fecha de referencia 2026-11-15 como inicio del periodo de análisis.",
+          "La duración del análisis es de 1 día según lo solicitado.",
+          "No se realiza barrido de fechas adicionales."
+        ],
+        "clarification": null
+      }
+    },
+    {
+      "name": "unsupported_requirement",
+      "passed": true,
+      "plan": {
+        "start_date": "2026-11-15",
+        "duration_days": 1,
+        "search_days": 3,
+        "site_ids": [
+          "malapert"
+        ],
+        "coordinates": [],
+        "constraints": {
+          "min_concurrent_hours": 6.0,
+          "min_sunlit_fraction": 0.4,
+          "min_earth_visible_fraction": 0.4,
+          "max_darkness_hours": null,
+          "max_earth_blackout_hours": null,
+          "min_earth_elevation_deg": 0.0
+        },
+        "assumptions": [
+          "Umbral de horas simultáneas establecido en 6 horas",
+          "Fracción mínima de iluminación solar establecida en 0.4",
+          "Fracción mínima de visibilidad terrestre establecida en 0.4"
+        ],
+        "clarification": "No es posible evaluar el consumo de combustible durante el descenso, ya que esta capacidad no está soportada por el motor de evaluación. Por favor, confirme si desea proceder con el análisis basado únicamente en los criterios de iluminación solar y línea de vista a la Tierra."
+      }
+    },
+    {
+      "name": "excessive_period",
+      "passed": true,
+      "plan": {
+        "start_date": "2026-11-15",
+        "duration_days": 1,
+        "search_days": 3,
+        "site_ids": [
+          "mouton",
+          "malapert"
+        ],
+        "coordinates": [],
+        "constraints": {
+          "min_concurrent_hours": 6.0,
+          "min_sunlit_fraction": 0.4,
+          "min_earth_visible_fraction": 0.4,
+          "max_darkness_hours": null,
+          "max_earth_blackout_hours": null,
+          "min_earth_elevation_deg": 0.0
+        },
+        "assumptions": [
+          "Se han seleccionado Mons Mouton y Mons Malapert del catálogo.",
+          "Umbral de horas concurrentes establecido en 6 horas.",
+          "Fracción mínima de iluminación solar establecida en 0.4.",
+          "Fracción mínima de visibilidad terrestre establecida en 0.4."
+        ],
+        "clarification": "El periodo solicitado de 90 días excede el límite máximo permitido de 14 días totales (duración + barrido). Por favor, especifique un intervalo de tiempo acotado dentro de este límite para proceder con la simulación."
+      }
+    }
+  ]
+}
